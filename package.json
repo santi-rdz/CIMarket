@@ -1,13 +1,24 @@
 {
-  "name": "untitled folder",
+  "name": "cimarket",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "pnpm -r run lint && pnpm run format:check",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.17.0"
+  "packageManager": "pnpm@10.17.0",
+  "devDependencies": {
+    "@types/node": "20.19.40",
+    "eslint": "9.39.4",
+    "eslint-config-prettier": "10.1.8",
+    "prettier": "3.8.3",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.59.2"
+  }
 }
