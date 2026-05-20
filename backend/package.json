@@ -3,12 +3,54 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
+    "dev": "tsx --watch src/app.ts",
+    "start": "node src/app.js",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:seed": "tsx --tsconfig tsconfig.prisma.json prisma/seed.ts",
+    "db:reset": "prisma migrate reset --force",
+    "db:push": "prisma db push --accept-data-loss",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev"
+  },
+  "prisma": {
+    "seed": "tsx --tsconfig tsconfig.prisma.json prisma/seed.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.17.0"
+  "packageManager": "pnpm@10.17.0",
+  "dependencies": {
+    "@cm/shared": "workspace:*",
+    "@prisma/adapter-mariadb": "7.8.0",
+    "@prisma/client": "7.8.0",
+    "cors": "2.8.6",
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "google-auth-library": "10.6.2",
+    "jose": "6.2.3",
+    "prisma": "7.8.0",
+    "socket.io": "4.8.1",
+    "tsx": "4.21.0",
+    "web-push": "3.6.7"
+  },
+  "devDependencies": {
+    "@types/cors": "2.8.19",
+    "@types/express": "5.0.6",
+    "@types/node": "^20.0.0",
+    "@types/web-push": "3.6.4"
+  },
+  "imports": {
+    "#config/*": "./config/*",
+    "#generated/*": "./generated/*",
+    "#models/*": "./src/models/*",
+    "#controllers/*": "./src/controllers/*",
+    "#routes/*": "./src/routes/*",
+    "#middlewares/*": "./src/middlewares/*",
+    "#lib/*": "./src/lib/*",
+    "#types/*": "./src/types/*"
+  }
 }

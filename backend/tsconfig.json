@@ -1,11 +1,24 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": "./",
     "lib": ["esnext"],
+    "rootDir": "..",
     "outDir": "dist",
-    "rootDir": "src",
-    "declaration": true
+    "declaration": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@cm/shared/*": ["../shared/*"],
+      "#controllers/*": ["./src/controllers/*"],
+      "#routes/*": ["./src/routes/*"],
+      "#lib/*": ["./src/lib/*"],
+      "#models/*": ["./src/models/*"],
+      "#middlewares/*": ["./src/middlewares/*"],
+      "#config/*": ["./config/*"],
+      "#generated/*": ["./generated/*"],
+      "#types/*": ["./src/types/*"]
+    }
   },
-  "include": ["src"],
+  "include": ["src", "config", "generated", "../shared"],
   "exclude": ["node_modules", "dist"]
 }
