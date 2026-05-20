@@ -1,0 +1,259 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+model User {
+  id String @id @default(uuid())
+  googleId String @unique @db.VarChar(255) @map("google_id") 
+  name String @db.VarChar(255)
+  email String @unique @db.VarChar(255)
+  campusId Int @map("campus_id")
+  photoUrl String? @db.VarChar(2048) @map("photo_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  rol UserRole @default(USER)
+  status UserStatus @default(ACTIVE)
+  products            Product[]
+  campus              Campus           @relation(fields: [campusId], references: [id])
+  favorites           Favorite[]
+  sellerReviews       Review[]         @relation("SellerReviews")
+  writtenReviews      Review[]         @relation("ReviewerReviews")
+  preferences         UserPreferences?
+  buyerConversations  Conversation[]   @relation("BuyerConversations")
+  sellerConversations Conversation[]   @relation("SellerConversations")
+  sentMessages        Message[]
+  sentReports         Report[]         @relation("ReportAuthor")
+  receivedReports     Report[]         @relation("ReportTarget")
+  pushSubscriptions   PushSubscription[]
+  notifications       Notification[]
+  @@index([campusId])
+  @@map("users")
+  
+}
+
+model Product{
+  id String @id @default(uuid())
+  slug String @unique @db.VarChar(300)
+  title String @db.VarChar(255)
+  description String @db.Text
+  price Decimal @db.Decimal(10, 2)
+  condition ProductCondition
+  status ProductStatus @default(DISPONIBLE)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  userId String @map("user_id")
+  categoryId Int @map("category_id")
+  images ProductImage[]
+  campuses Campus[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  favorites     Favorite[]
+  conversations Conversation[]
+  @@index([status])
+  @@index([condition])
+  @@index([userId])
+  @@index([categoryId, status])
+  @@index([price])
+  @@map("products")
+}
+model Favorite{
+  userId String @map("user_id")
+  productId String @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([userId, productId])
+  @@index([userId])
+  @@index([productId])
+  @@map("favorites")
+
+}
+model Review {
+  id Int @id @default(autoincrement())
+  rating Decimal @db.Decimal(2, 1)
+  comment String? @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  sellerId String @map("seller_id")
+  reviewerId String @map("reviewer_id")
+  seller User @relation("SellerReviews", fields: [sellerId], references: [id], onDelete: Cascade)
+  reviewer User @relation("ReviewerReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+  @@unique([reviewerId, sellerId])
+  @@index([sellerId])
+  @@index([reviewerId])
+  @@map("reviews")
+}
+model ProductImage{
+  id Int @id @default(autoincrement())
+  url String @db.VarChar(2048)
+  productId String @map("product_id")
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@index([productId])
+  @@map("product_images")
+}
+
+model Category{
+  id Int @id @default(autoincrement())
+  name String @unique @db.VarChar(255)
+  products Product[]
+  @@map("categories")
+}
+model Campus{
+  id Int @id @default(autoincrement())
+  name String @unique @db.VarChar(255)
+  users User[]
+  products Product[]
+  userPreferences UserPreferenceCampus[]
+  @@map("campuses")
+}
+
+model UserPreferences {
+  id                 Int                    @id @default(autoincrement())
+  userId             String                 @unique @map("user_id")
+  emailNotifications Boolean                @default(true)
+  showContactInfo    Boolean                @default(false)
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+  user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campuses           UserPreferenceCampus[]
+  @@map("user_preferences")
+}
+
+model UserPreferenceCampus {
+  prefId   Int             @map("pref_id")
+  campusId Int             @map("campus_id")
+  pref     UserPreferences @relation(fields: [prefId], references: [id], onDelete: Cascade)
+  campus   Campus          @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  @@id([prefId, campusId])
+  @@map("user_preference_campuses")
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  buyerId   String @map("buyer_id")
+  sellerId  String @map("seller_id")
+  productId String @map("product_id")
+
+  buyerArchivedAt  DateTime? @map("buyer_archived_at")
+  sellerArchivedAt DateTime? @map("seller_archived_at")
+  buyerDeletedAt   DateTime? @map("buyer_deleted_at")
+  sellerDeletedAt  DateTime? @map("seller_deleted_at")
+
+  buyer    User      @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller   User      @relation("SellerConversations", fields: [sellerId], references: [id], onDelete: Cascade)
+  product  Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([buyerId, sellerId, productId])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([productId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  content        String       @db.Text
+  readAt         DateTime?    @map("read_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  senderId       String       @map("sender_id")
+  conversationId String       @map("conversation_id")
+
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([conversationId, createdAt])
+  @@index([conversationId, readAt])
+  @@map("messages")
+}
+
+model Notification {
+  id         Int              @id @default(autoincrement())
+  type       NotificationType @default(MESSAGE)
+  title      String           @db.VarChar(255)
+  body       String           @db.VarChar(500)
+  url        String           @db.VarChar(500)
+  imageUrl   String?          @db.VarChar(2048) @map("image_url")
+  avatarUrl  String?          @db.VarChar(2048) @map("avatar_url")
+  readAt     DateTime?        @map("read_at")
+  createdAt  DateTime         @default(now()) @map("created_at")
+  userId     String           @map("user_id")
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  MESSAGE
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  endpoint  String   @db.VarChar(500)
+  p256dh    String   @db.VarChar(512)
+  auth      String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, endpoint])
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model Report {
+  id         Int          @id @default(autoincrement())
+  reason     ReportReason
+  detail     String?      @db.Text
+  createdAt  DateTime     @default(now()) @map("created_at")
+  reporterId String       @map("reporter_id")
+  reportedId String       @map("reported_id")
+  reporter   User         @relation("ReportAuthor", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported   User         @relation("ReportTarget", fields: [reportedId], references: [id], onDelete: Cascade)
+  @@index([reporterId])
+  @@index([reportedId])
+  @@map("reports")
+}
+
+enum ReportReason {
+  SPAM
+  ACOSO
+  FRAUDE
+  CONTENIDO_INAPROPIADO
+  OTRO
+}
+
+enum ProductCondition {
+  NUEVO
+  COMO_NUEVO
+  BUEN_ESTADO
+  DIGITAL
+}
+enum ProductStatus {
+  DISPONIBLE
+  VENDIDO
+  RESERVADO
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+enum UserStatus {
+  ACTIVE
+  BANNED
+}
