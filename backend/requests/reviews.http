@@ -1,0 +1,51 @@
+@baseUrl = http://localhost:8000
+
+### GET todas las reviews
+# @name getAll
+GET {{baseUrl}}/reviews HTTP/1.1
+
+###
+
+### GET por ID
+GET {{baseUrl}}/reviews/{{getAll.response.body.$.data[0].id}} HTTP/1.1
+
+###
+
+### GET reviews de un vendedor
+GET {{baseUrl}}/reviews?sellerId={{getAll.response.body.$.data[0].seller.id}} HTTP/1.1
+
+###
+
+### Obtener usuarios para crear review
+# @name getUsers
+GET {{baseUrl}}/users HTTP/1.1
+
+###
+
+### POST crear review de vendedor
+# @name create
+POST {{baseUrl}}/reviews HTTP/1.1
+Content-Type: application/json
+
+{
+  "rating": 4.5,
+  "comment": "Muy buen vendedor, entrega rápida.",
+  "reviewerId": "{{getUsers.response.body.$.data[0].id}}",
+  "sellerId": "{{getUsers.response.body.$.data[2].id}}"
+}
+
+###
+
+### PATCH actualizar review
+PATCH {{baseUrl}}/reviews/{{create.response.body.id}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "rating": 3.5,
+  "comment": "Actualizo: tardó un poco más de lo esperado."
+}
+
+###
+
+### DELETE review
+DELETE {{baseUrl}}/reviews/{{create.response.body.id}} HTTP/1.1

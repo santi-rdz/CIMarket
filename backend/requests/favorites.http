@@ -1,0 +1,38 @@
+@baseUrl = http://localhost:8000
+
+### Obtener usuarios y productos para IDs válidos
+# @name getUsers
+GET {{baseUrl}}/users HTTP/1.1
+
+###
+
+# @name getProducts
+GET {{baseUrl}}/products HTTP/1.1
+
+###
+
+### POST toggle favorito (crear)
+# @name toggle
+POST {{baseUrl}}/favorites HTTP/1.1
+Content-Type: application/json
+
+{
+  "userId": "{{getUsers.response.body.$.data[0].id}}",
+  "productId": "{{getProducts.response.body.$.data[0].id}}"
+}
+
+###
+
+### GET favoritos de un usuario
+GET {{baseUrl}}/favorites?userId={{getUsers.response.body.$.data[0].id}} HTTP/1.1
+
+###
+
+### POST toggle favorito (eliminar — mismo body lo quita)
+POST {{baseUrl}}/favorites HTTP/1.1
+Content-Type: application/json
+
+{
+  "userId": "{{getUsers.response.body.$.data[0].id}}",
+  "productId": "{{getProducts.response.body.$.data[0].id}}"
+}

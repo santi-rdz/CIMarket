@@ -1,0 +1,36 @@
+@baseUrl = http://localhost:8000
+
+### GET todas las categorías
+# @name getAll
+GET {{baseUrl}}/categories HTTP/1.1
+
+###
+
+### GET por ID
+GET {{baseUrl}}/categories/1 HTTP/1.1
+
+###
+
+### POST crear categoría
+# @name create
+POST {{baseUrl}}/categories HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Servicios"
+}
+
+###
+
+### PATCH actualizar categoría
+PATCH {{baseUrl}}/categories/{{create.response.body.id}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Servicios Profesionales"
+}
+
+###
+
+### DELETE categoría
+DELETE {{baseUrl}}/categories/{{create.response.body.id}} HTTP/1.1

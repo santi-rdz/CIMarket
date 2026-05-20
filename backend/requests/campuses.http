@@ -1,0 +1,15 @@
+@baseUrl = http://localhost:8000
+
+### GET todos los campus
+# @name getAll
+GET {{baseUrl}}/campuses HTTP/1.1
+
+###
+
+### GET por ID
+GET {{baseUrl}}/campuses/1 HTTP/1.1
+
+###
+
+### GET campus inexistente (404)
+GET {{baseUrl}}/campuses/999 HTTP/1.1

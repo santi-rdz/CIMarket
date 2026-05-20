@@ -1,0 +1,35 @@
+@baseUrl = http://localhost:8000
+
+### POST login con Google
+# Obtén un ID token real desde Google Identity Services en el frontend
+# @name login
+POST {{baseUrl}}/auth/google HTTP/1.1
+Content-Type: application/json
+
+{
+  "idToken": "paste-google-id-token-here",
+  "campusId": 1
+}
+
+###
+
+### GET usuario autenticado (con token de login)
+GET {{baseUrl}}/auth/me HTTP/1.1
+Authorization: Bearer {{login.response.body.token}}
+
+###
+
+### GET /auth/me sin token (401)
+GET {{baseUrl}}/auth/me HTTP/1.1
+
+###
+
+### Obtener usuario real para generar token de prueba
+# @name getUsers
+GET {{baseUrl}}/users HTTP/1.1
+
+###
+
+### GET /auth/me con token de prueba (404 — sub falso)
+GET {{baseUrl}}/auth/me HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0LXVzZXItaWQiLCJlbWFpbCI6InRlc3RAdWFiYy5lZHUubXgiLCJyb2wiOiJVU0VSIiwiaWF0IjoxNzc4NTgyOTY1LCJpc3MiOiJjaW1hcmtldCIsImV4cCI6MTc3OTE4Nzc2NX0.0GzYvIcfB_qJ4TFCtODonqMhKB5PKBEperDgtzEBQzQ

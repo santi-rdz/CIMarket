@@ -1,0 +1,48 @@
+@baseUrl = http://localhost:8000
+
+### GET todos los productos
+# @name getAll
+GET {{baseUrl}}/products HTTP/1.1
+
+###
+
+### GET con filtros
+GET {{baseUrl}}/products?search=laptop&condition=NUEVO&sortBy=price&order=asc&page=1&limit=5 HTTP/1.1
+
+###
+
+### GET por ID
+GET {{baseUrl}}/products/{{getAll.response.body.$.data[0].id}} HTTP/1.1
+
+###
+
+### POST crear producto
+# @name create
+POST {{baseUrl}}/products HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "Calculadora Científica",
+  "description": "Calculadora Casio fx-991EX, perfecta para ingeniería. Seminueva.",
+  "price": 450,
+  "condition": "COMO_NUEVO",
+  "userId": "{{getAll.response.body.$.data[0].userId}}",
+  "categoryId": 1
+}
+
+###
+
+### PATCH actualizar producto
+PATCH {{baseUrl}}/products/{{create.response.body.id}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "Calculadora Científica Casio",
+  "price": 400,
+  "status": "RESERVADO"
+}
+
+###
+
+### DELETE producto
+DELETE {{baseUrl}}/products/{{create.response.body.id}} HTTP/1.1

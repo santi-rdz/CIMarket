@@ -1,0 +1,44 @@
+@baseUrl = http://localhost:8000
+
+### GET todos los usuarios
+# @name getAll
+GET {{baseUrl}}/users HTTP/1.1
+
+###
+
+### GET con filtros
+GET {{baseUrl}}/users?search=juan&rol=USER&status=ACTIVE&sortBy=name&page=1&limit=5 HTTP/1.1
+
+###
+
+### GET por ID
+GET {{baseUrl}}/users/{{getAll.response.body.$.data[0].id}} HTTP/1.1
+
+###
+
+### POST crear usuario
+POST {{baseUrl}}/users HTTP/1.1
+Content-Type: application/json
+
+{
+  "googleId": "google-test-{{$randomInt 100 999}}",
+  "name": "Usuario Test",
+  "email": "test.{{$randomInt 1000 9999}}@uabc.edu.mx",
+  "campusId": 22
+}
+
+###
+
+### PATCH actualizar usuario
+PATCH {{baseUrl}}/users/{{getAll.response.body.$.data[0].id}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Nombre Actualizado",
+  "status": "BANNED"
+}
+
+###
+
+### DELETE usuario
+DELETE {{baseUrl}}/users/{{getAll.response.body.$.data[0].id}} HTTP/1.1
