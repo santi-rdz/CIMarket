@@ -13,7 +13,7 @@
 
 | Capa | Tecnología |
 |------|-----------|
-| Frontend | Next.js 15, React 19, Tailwind CSS, TanStack Query |
+| Frontend | Next.js 16, React 19, Tailwind CSS, TanStack Query |
 | Backend | Express, Prisma ORM, Socket.IO |
 | Base de datos | MySQL 8 |
 | Auth | Google OAuth + JWT |
