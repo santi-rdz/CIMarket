@@ -19,17 +19,22 @@ const badges = [
 export default function LeftPanel() {
   return (
     <div
-      className="relative isolate text-white flex flex-col border-r border-white/10 justify-between px-12 py-6 bg-cover bg-center overflow-hidden"
+      className="relative isolate text-white flex flex-col border-r border-white/10
+        justify-start gap-12
+        md:justify-between md:gap-0
+        px-6 py-8 min-h-[58vh]
+        md:px-12 md:py-6 md:min-h-0
+        bg-cover bg-center overflow-hidden"
       style={{ backgroundImage: "url('/uabc.png')" }}
     >
       <div className="absolute inset-0 bg-linear-to-b from-black/85 via-black/70 to-black/85 -z-10" />
 
       <header>
-        <Logo />
+        <Logo white />
       </header>
 
-      <section className="flex flex-col gap-8">
-        <div className="flex flex-col gap-5">
+      <section className="flex flex-col gap-5 md:gap-8">
+        <div className="flex flex-col gap-3 md:gap-5">
           <p className="flex items-center gap-1.5 text-green-400 tracking-widest leading-none uppercase txt-6 font-bold">
             <HiOutlineStar strokeWidth={2.5} size={14} />
             marketplace universitario
@@ -40,20 +45,21 @@ export default function LeftPanel() {
               Cimarrones
             </span>
           </h1>
-          <p className="txt-base text-white/85 max-w-md">
+          <p className="hidden md:block txt-base text-white/85 max-w-md">
             Compra, vende e intercambia productos de forma segura dentro de la comunidad
             universitaria UABC.
           </p>
         </div>
 
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-2 md:gap-3">
           {highlights.map((text) => (
             <FeatureItem key={text} description={text} />
           ))}
         </ul>
       </section>
 
-      <footer className="w-full">
+      {/* Footer badges — desktop only */}
+      <footer className="hidden md:block w-full">
         <ul className="flex glass divide-x divide-white/10 rounded-xl py-5 px-2">
           {badges.map((badge) => (
             <FeatureItem key={badge.description} variant="card" {...badge} />
