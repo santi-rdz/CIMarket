@@ -1,9 +1,5 @@
+import { redirect } from 'next/navigation'
+
 export default function Home() {
-  return (
-    <>
-      <header>Cimarket</header>
-      <main></main>
-      <footer></footer>
-    </>
-  )
+  redirect('/productos')
 }
