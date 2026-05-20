@@ -3,11 +3,11 @@
 > Marketplace universitario para la comunidad UABC — compra, vende e intercambia de forma segura.
 
 ---
-
-<!-- Agrega tu captura aquí -->
-<!-- ![App screenshot](./docs/screenshot.png) -->
+<img width="2635" height="2615" alt="Productos Campus 2 (1)" src="https://github.com/user-attachments/assets/a63add13-1a14-4c24-8232-3ae23e30b226" />
+<img width="2546" height="2253" alt="Teclado Casio CT-S300" src="https://github.com/user-attachments/assets/1dfd8895-9f30-4d8d-aa71-cf36741f0143" />
 
 ---
+
 
 ## Stack
 
