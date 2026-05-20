@@ -2,7 +2,13 @@
   "name": "@cm/shared",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
+  "type": "module",
+  "exports": {
+    "./*": "./*.ts",
+    "./schemas/*": "./schemas/*.ts",
+    "./constants/*": "./constants/*.ts"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint"
