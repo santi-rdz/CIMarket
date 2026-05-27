@@ -37,6 +37,7 @@ model User {
   buyerTransactions   Transaction[]       @relation("BuyerTransactions")
   reviewsGiven        TransactionReview[] @relation("ReviewsGiven")
   reviewsReceived     TransactionReview[] @relation("ReviewsReceived")
+  refreshTokens       RefreshToken[]
   @@map("users")
   
 }
@@ -287,6 +288,18 @@ enum ProductStatus {
   DISPONIBLE
   VENDIDO
   RESERVADO
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique @db.VarChar(64) @map("token_hash")
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@map("refresh_tokens")
 }
 
 enum UserRole {
