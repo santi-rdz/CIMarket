@@ -25,7 +25,7 @@ export async function generateMetadata({
 
   return {
     title: `${profile.name} — Vendedor`,
-    description: `Perfil de ${profile.name} en CIMarket. ${profile._count.products} publicaciones, campus ${profile.campus.name}.`,
+    description: `Perfil de ${profile.name} en CIMarket. ${profile._count.products} publicaciones${profile.campus ? `, campus ${profile.campus.name}` : ''}.`,
     robots: { index: true, follow: true },
   }
 }
