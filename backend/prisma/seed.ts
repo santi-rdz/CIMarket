@@ -132,6 +132,14 @@ const userTemplates = [
   },
   {
     id: randomUUID(),
+    name: 'Raúl Rodríguez',
+    email: 'raul.rodriguez39@uabc.edu.mx',
+    googleId: 'google-raul-rodriguez-039',
+    rol: UserRole.USER,
+    status: UserStatus.ACTIVE,
+  },
+  {
+    id: randomUUID(),
     name: 'María García',
     email: 'maria.garcia@uabc.edu.mx',
     googleId: 'google-maria-002',
@@ -458,7 +466,6 @@ async function main() {
           photoUrl: randomAvatar(),
           rol: user.rol,
           status: user.status,
-          campusId: pick(createdCampuses).id,
         },
       }),
     ),
