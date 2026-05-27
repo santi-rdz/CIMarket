@@ -1,7 +1,8 @@
 import { z } from 'zod'
+import { requiredText } from './common'
 
 export const campusSchema = z.object({
-  name: z.string().min(1).max(255),
+  name: requiredText('El nombre es requerido'),
 })
 
 export type CampusInput = z.infer<typeof campusSchema>

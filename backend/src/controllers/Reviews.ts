@@ -1,7 +1,12 @@
 import type { RequestHandler } from 'express'
-import { validateReview, validatePartialReview, reviewsQuerySchema } from '@cm/shared/schemas/review'
+import {
+  validateReview,
+  validatePartialReview,
+  reviewsQuerySchema,
+} from '@cm/shared/schemas/review'
 import { formatZodErrors } from '@cm/shared/schemas/common'
 import { idSchema } from '@cm/shared/schemas/fields'
+import { USER_ROLE } from '@cm/shared/constants'
 import { parsePagination } from '#lib/utils'
 import ReviewModel from '#models/Review'
 
@@ -9,7 +14,9 @@ export default class ReviewController {
   static getAll: RequestHandler = async (req, res) => {
     const parsed = reviewsQuerySchema.safeParse(req.query)
     if (!parsed.success) {
-      res.status(400).json({ error: 'Invalid query params', details: formatZodErrors(parsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Invalid query params', details: formatZodErrors(parsed.error) })
       return
     }
     const { page, limit } = parsePagination(parsed.data)
@@ -34,11 +41,17 @@ export default class ReviewController {
   static create: RequestHandler = async (req, res) => {
     const parsed = validateReview(req.body)
     if (!parsed.success) {
-      res.status(400).json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
       return
     }
     if (parsed.data.sellerId === parsed.data.reviewerId) {
       res.status(400).json({ error: 'Cannot review yourself' })
+      return
+    }
+    if (parsed.data.reviewerId !== req.user!.id) {
+      res.status(403).json({ error: 'No tienes permiso para crear esta reseña' })
       return
     }
     const existing = await ReviewModel.existsByReviewerAndSeller(
@@ -61,12 +74,18 @@ export default class ReviewController {
     }
     const bodyParsed = validatePartialReview(req.body)
     if (!bodyParsed.success) {
-      res.status(400).json({ error: 'Validation failed', details: formatZodErrors(bodyParsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(bodyParsed.error) })
       return
     }
     const existing = await ReviewModel.getById(idParsed.data)
     if (!existing) {
       res.status(404).json({ error: 'Review not found' })
+      return
+    }
+    if (existing.reviewer.id !== req.user!.id && req.user!.rol !== USER_ROLE.ADMIN) {
+      res.status(403).json({ error: 'No tienes permiso para editar esta reseña' })
       return
     }
     const review = await ReviewModel.update(idParsed.data, bodyParsed.data)
@@ -82,6 +101,10 @@ export default class ReviewController {
     const existing = await ReviewModel.getById(parsed.data)
     if (!existing) {
       res.status(404).json({ error: 'Review not found' })
+      return
+    }
+    if (existing.reviewer.id !== req.user!.id && req.user!.rol !== USER_ROLE.ADMIN) {
+      res.status(403).json({ error: 'No tienes permiso para eliminar esta reseña' })
       return
     }
     await ReviewModel.delete(parsed.data)

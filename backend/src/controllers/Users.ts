@@ -1,14 +1,11 @@
 import type { RequestHandler } from 'express'
-import {
-  validateUser,
-  validatePartialUser,
-  usersQuerySchema,
-} from '@cm/shared/schemas/user'
+import { validateUser, usersQuerySchema } from '@cm/shared/schemas/user'
 import {
   validateUpdateUser,
   validateUserPreferences,
 } from '@cm/shared/schemas/userPreferences'
 import { formatZodErrors } from '@cm/shared/schemas/common'
+import { PRODUCT_STATUSES } from '@cm/shared/constants'
 import { parsePagination } from '#lib/utils'
 import UserModel from '#models/User'
 import UserPreferencesModel from '#models/UserPreferences'
@@ -42,7 +39,9 @@ export default class UserController {
   static getAll: RequestHandler = async (req, res) => {
     const parsed = usersQuerySchema.safeParse(req.query)
     if (!parsed.success) {
-      res.status(400).json({ error: 'Invalid query params', details: formatZodErrors(parsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Invalid query params', details: formatZodErrors(parsed.error) })
       return
     }
     const { search, status, rol, sortBy } = parsed.data
@@ -54,15 +53,24 @@ export default class UserController {
   /** GET /users/:id — perfil completo si owner, público si no */
   static getById: RequestHandler = async (req, res) => {
     const ctx = parseId(req)
-    if ('error' in ctx) { res.status(400).json({ error: ctx.error }); return }
+    if ('error' in ctx) {
+      res.status(400).json({ error: ctx.error })
+      return
+    }
 
     if (ctx.isOwner) {
       const user = await UserModel.getById(ctx.id)
-      if (!user) { res.status(404).json({ error: 'User not found' }); return }
+      if (!user) {
+        res.status(404).json({ error: 'User not found' })
+        return
+      }
       res.json(user)
     } else {
       const profile = await UserModel.getPublicProfile(ctx.id)
-      if (!profile) { res.status(404).json({ error: 'User not found' }); return }
+      if (!profile) {
+        res.status(404).json({ error: 'User not found' })
+        return
+      }
       res.json(profile)
     }
   }
@@ -71,7 +79,9 @@ export default class UserController {
   static create: RequestHandler = async (req, res) => {
     const parsed = validateUser(req.body)
     if (!parsed.success) {
-      res.status(400).json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
       return
     }
     const existing = await UserModel.getByEmail(parsed.data.email)
@@ -86,12 +96,20 @@ export default class UserController {
   /** PATCH /users/:id — solo owner puede editar su perfil */
   static update: RequestHandler = async (req, res) => {
     const ctx = parseId(req)
-    if ('error' in ctx) { res.status(400).json({ error: ctx.error }); return }
-    if (!ctx.isOwner) { res.status(403).json({ error: 'No tienes permiso' }); return }
+    if ('error' in ctx) {
+      res.status(400).json({ error: ctx.error })
+      return
+    }
+    if (!ctx.isOwner) {
+      res.status(403).json({ error: 'No tienes permiso' })
+      return
+    }
 
     const parsed = validateUpdateUser(req.body)
     if (!parsed.success) {
-      res.status(400).json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
       return
     }
     const user = await UserModel.update(ctx.id, parsed.data)
@@ -101,8 +119,14 @@ export default class UserController {
   /** DELETE /users/:id — solo owner puede eliminar su cuenta */
   static delete: RequestHandler = async (req, res) => {
     const ctx = parseId(req)
-    if ('error' in ctx) { res.status(400).json({ error: ctx.error }); return }
-    if (!ctx.isOwner) { res.status(403).json({ error: 'No tienes permiso' }); return }
+    if ('error' in ctx) {
+      res.status(400).json({ error: ctx.error })
+      return
+    }
+    if (!ctx.isOwner) {
+      res.status(403).json({ error: 'No tienes permiso' })
+      return
+    }
 
     await UserModel.delete(ctx.id)
     res.status(204).send()
@@ -111,12 +135,26 @@ export default class UserController {
   /** GET /users/:id/products — owner ve todos, otros solo DISPONIBLE */
   static getProducts: RequestHandler = async (req, res) => {
     const ctx = parseId(req)
-    if ('error' in ctx) { res.status(400).json({ error: ctx.error }); return }
+    if ('error' in ctx) {
+      res.status(400).json({ error: ctx.error })
+      return
+    }
 
     const { page, limit } = parsePagination(req.query as Record<string, string>)
     const offset = (page - 1) * limit
+    const statusParam =
+      typeof req.query.status === 'string'
+        ? req.query.status.trim().toUpperCase()
+        : undefined
     const where: Record<string, unknown> = { userId: ctx.id }
-    if (!ctx.isOwner) where.status = 'DISPONIBLE'
+    if (!ctx.isOwner) {
+      where.status = { in: ['DISPONIBLE', 'VENDIDO'] }
+    } else if (
+      statusParam &&
+      PRODUCT_STATUSES.includes(statusParam as (typeof PRODUCT_STATUSES)[number])
+    ) {
+      where.status = statusParam
+    }
 
     const [data, total] = await Promise.all([
       prisma.product.findMany({
@@ -135,8 +173,14 @@ export default class UserController {
   /** GET /users/:id/favorites — solo owner */
   static getFavorites: RequestHandler = async (req, res) => {
     const ctx = parseId(req)
-    if ('error' in ctx) { res.status(400).json({ error: ctx.error }); return }
-    if (!ctx.isOwner) { res.status(403).json({ error: 'No tienes permiso' }); return }
+    if ('error' in ctx) {
+      res.status(400).json({ error: ctx.error })
+      return
+    }
+    if (!ctx.isOwner) {
+      res.status(403).json({ error: 'No tienes permiso' })
+      return
+    }
 
     const { page, limit } = parsePagination(req.query as Record<string, string>)
     const offset = (page - 1) * limit
@@ -164,27 +208,46 @@ export default class UserController {
   /** GET /users/:id/reviews */
   static getReviews: RequestHandler = async (req, res) => {
     const ctx = parseId(req)
-    if ('error' in ctx) { res.status(400).json({ error: ctx.error }); return }
+    if ('error' in ctx) {
+      res.status(400).json({ error: ctx.error })
+      return
+    }
 
-    const reviews = await prisma.review.findMany({
-      where: { sellerId: ctx.id },
+    const reviews = await prisma.transactionReview.findMany({
+      where: { toId: ctx.id },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
         rating: true,
         comment: true,
         createdAt: true,
-        reviewer: { select: { id: true, name: true, photoUrl: true } },
+        from: { select: { id: true, name: true, photoUrl: true } },
+        transaction: {
+          select: { product: { select: { id: true, title: true, slug: true } } },
+        },
       },
     })
-    res.json(reviews)
+
+    res.json(
+      reviews.map(({ from, transaction: t, ...r }) => ({
+        ...r,
+        reviewer: from,
+        product: t.product,
+      })),
+    )
   }
 
   /** GET /users/:id/preferences — solo owner */
   static getPreferences: RequestHandler = async (req, res) => {
     const ctx = parseId(req)
-    if ('error' in ctx) { res.status(400).json({ error: ctx.error }); return }
-    if (!ctx.isOwner) { res.status(403).json({ error: 'No tienes permiso' }); return }
+    if ('error' in ctx) {
+      res.status(400).json({ error: ctx.error })
+      return
+    }
+    if (!ctx.isOwner) {
+      res.status(403).json({ error: 'No tienes permiso' })
+      return
+    }
 
     const prefs = await UserPreferencesModel.getOrCreate(ctx.id)
     res.json(prefs)
@@ -193,12 +256,20 @@ export default class UserController {
   /** PUT /users/:id/preferences — solo owner */
   static updatePreferences: RequestHandler = async (req, res) => {
     const ctx = parseId(req)
-    if ('error' in ctx) { res.status(400).json({ error: ctx.error }); return }
-    if (!ctx.isOwner) { res.status(403).json({ error: 'No tienes permiso' }); return }
+    if ('error' in ctx) {
+      res.status(400).json({ error: ctx.error })
+      return
+    }
+    if (!ctx.isOwner) {
+      res.status(403).json({ error: 'No tienes permiso' })
+      return
+    }
 
     const parsed = validateUserPreferences(req.body)
     if (!parsed.success) {
-      res.status(400).json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
       return
     }
     const prefs = await UserPreferencesModel.update(ctx.id, parsed.data)

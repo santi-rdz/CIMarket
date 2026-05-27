@@ -10,6 +10,8 @@ export type FavoriteInput = z.infer<typeof favoriteSchema>
 
 export const validateFavorite = (input: unknown) => favoriteSchema.safeParse(input)
 
+export const favoriteToggleSchema = favoriteSchema.pick({ productId: true })
+
 export const favoritesQuerySchema = paginationSchema.extend({
   userId: z.uuid().optional(),
 })

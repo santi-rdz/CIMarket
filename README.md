@@ -3,22 +3,22 @@
 > Marketplace universitario para la comunidad UABC — compra, vende e intercambia de forma segura.
 
 ---
-<img width="500" height="auto" alt="Productos Campus 2 (1)" src="https://github.com/user-attachments/assets/a63add13-1a14-4c24-8232-3ae23e30b226" />
-<img width="500" height="auto" alt="Teclado Casio CT-S300" src="https://github.com/user-attachments/assets/1dfd8895-9f30-4d8d-aa71-cf36741f0143" />
+
+<!-- Agrega tu captura aquí -->
+<!-- ![App screenshot](./docs/screenshot.png) -->
 
 ---
 
-
 ## Stack
 
-| Capa | Tecnología |
-|------|-----------|
-| Frontend | Next.js 16, React 19, Tailwind CSS, TanStack Query |
-| Backend | Express, Prisma ORM, Socket.IO |
-| Base de datos | MySQL 8 |
-| Auth | Google OAuth + JWT |
-| Push | Web Push / VAPID |
-| Infra | Docker Compose |
+| Capa          | Tecnología                                         |
+| ------------- | -------------------------------------------------- |
+| Frontend      | Next.js 15, React 19, Tailwind CSS, TanStack Query |
+| Backend       | Express, Prisma ORM, Socket.IO                     |
+| Base de datos | MySQL 8                                            |
+| Auth          | Google OAuth + JWT                                 |
+| Push          | Web Push / VAPID                                   |
+| Infra         | Docker Compose                                     |
 
 ## Estructura
 
@@ -46,11 +46,11 @@ cp backend/.env.example backend/.env
 
 Completa los valores requeridos:
 
-| Variable | Descripción |
-|----------|-------------|
-| `GOOGLE_CLIENT_ID` | Credencial OAuth en [console.cloud.google.com](https://console.cloud.google.com/apis/credentials) |
-| `JWT_SECRET` | String aleatorio largo — `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
-| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Generar con `npx web-push generate-vapid-keys` |
+| Variable                                 | Descripción                                                                                         |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `GOOGLE_CLIENT_ID`                       | Credencial OAuth en [console.cloud.google.com](https://console.cloud.google.com/apis/credentials)   |
+| `JWT_SECRET`                             | String aleatorio largo — `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Generar con `npx web-push generate-vapid-keys`                                                      |
 
 ### 2. Levantar el proyecto
 
@@ -61,9 +61,9 @@ pnpm dev          # Docker (backend + MySQL) + Next.js local
 
 El comando `dev` hace todo solo: levanta los containers, corre migraciones, seed, y arranca el frontend.
 
-| Servicio | URL |
-|----------|-----|
-| Frontend | http://localhost:3000 |
+| Servicio    | URL                   |
+| ----------- | --------------------- |
+| Frontend    | http://localhost:3000 |
 | Backend API | http://localhost:8000 |
 
 ## Scripts

@@ -58,7 +58,10 @@ export default class ReviewModel {
     })
   }
 
-  static async update(id: number, data: Partial<Pick<ReviewInput, 'rating' | 'comment'>>) {
+  static async update(
+    id: number,
+    data: Partial<Pick<ReviewInput, 'rating' | 'comment'>>,
+  ) {
     return prisma.review.update({ where: { id }, data })
   }
 

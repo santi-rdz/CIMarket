@@ -1,8 +1,8 @@
-import { Router } from 'express'
+import { Router, type IRouter } from 'express'
 import { requireAuth } from '#middlewares/auth'
 import { list, markRead, markAllRead } from '#controllers/Notifications'
 
-export const notificationsRouter = Router()
+export const notificationsRouter: IRouter = Router()
 
 notificationsRouter.use(requireAuth)
 

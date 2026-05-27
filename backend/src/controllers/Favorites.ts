@@ -1,5 +1,5 @@
 import type { RequestHandler } from 'express'
-import { favoritesQuerySchema } from '@cm/shared/schemas/favorite'
+import { favoriteToggleSchema, favoritesQuerySchema } from '@cm/shared/schemas/favorite'
 import { formatZodErrors } from '@cm/shared/schemas/common'
 import { parsePagination } from '#lib/utils'
 import FavoriteModel from '#models/Favorite'
@@ -10,7 +10,9 @@ export default class FavoriteController {
   static getAll: RequestHandler = async (req, res) => {
     const parsed = favoritesQuerySchema.safeParse(req.query)
     if (!parsed.success) {
-      res.status(400).json({ error: 'Invalid query params', details: formatZodErrors(parsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Invalid query params', details: formatZodErrors(parsed.error) })
       return
     }
     const { page, limit } = parsePagination(parsed.data)
@@ -31,12 +33,14 @@ export default class FavoriteController {
 
   /** POST /favorites — toggle con userId del token */
   static toggle: RequestHandler = async (req, res) => {
-    const parsed = uuidSchema.safeParse(req.body.productId)
+    const parsed = favoriteToggleSchema.safeParse(req.body)
     if (!parsed.success) {
-      res.status(400).json({ error: 'Invalid product ID' })
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
       return
     }
-    const result = await FavoriteModel.toggle(req.user!.id, parsed.data)
+    const result = await FavoriteModel.toggle(req.user!.id, parsed.data.productId)
     res.json(result)
   }
 }

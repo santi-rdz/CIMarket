@@ -1,9 +1,13 @@
 import { z } from 'zod'
-import { paginationSchema } from './common'
+import { optionalText, paginationSchema } from './common'
 
 export const reviewSchema = z.object({
-  rating: z.coerce.number({ error: 'La calificación es requerida' }).min(0.5, 'Mínimo 0.5').max(5, 'Máximo 5').multipleOf(0.5, 'Debe ser múltiplo de 0.5'),
-  comment: z.string().max(2000, 'Máximo 2000 caracteres').nullish(),
+  rating: z.coerce
+    .number({ error: 'La calificación es requerida' })
+    .min(0.5, 'Mínimo 0.5')
+    .max(5, 'Máximo 5')
+    .multipleOf(0.5, 'Debe ser múltiplo de 0.5'),
+  comment: optionalText({ max: 2000, emptyAs: 'null' }),
   sellerId: z.uuid('ID de vendedor inválido'),
   reviewerId: z.uuid('ID de reseñador inválido'),
 })

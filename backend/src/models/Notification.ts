@@ -3,11 +3,29 @@ import { prisma } from '#config/prisma'
 export default class NotificationModel {
   static async create(
     userId: string,
-    data: { title: string; body: string; url: string; imageUrl?: string | null; avatarUrl?: string | null },
+    data: {
+      title: string
+      body: string
+      url: string
+      imageUrl?: string | null
+      avatarUrl?: string | null
+      type?: 'MESSAGE' | 'SALE_REVIEW'
+    },
   ) {
+    const { type, ...rest } = data
     return prisma.notification.create({
-      data: { userId, ...data },
-      select: { id: true, type: true, title: true, body: true, url: true, imageUrl: true, avatarUrl: true, createdAt: true, readAt: true },
+      data: { userId, type: type ?? 'MESSAGE', ...rest },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        body: true,
+        url: true,
+        imageUrl: true,
+        avatarUrl: true,
+        createdAt: true,
+        readAt: true,
+      },
     })
   }
 
@@ -17,7 +35,17 @@ export default class NotificationModel {
         where: { userId },
         orderBy: { createdAt: 'desc' },
         take: 30,
-        select: { id: true, type: true, title: true, body: true, url: true, imageUrl: true, avatarUrl: true, createdAt: true, readAt: true },
+        select: {
+          id: true,
+          type: true,
+          title: true,
+          body: true,
+          url: true,
+          imageUrl: true,
+          avatarUrl: true,
+          createdAt: true,
+          readAt: true,
+        },
       }),
       prisma.notification.count({ where: { userId, readAt: null } }),
     ])

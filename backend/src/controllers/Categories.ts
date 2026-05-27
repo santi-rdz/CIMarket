@@ -27,7 +27,9 @@ export default class CategoryController {
   static create: RequestHandler = async (req, res) => {
     const parsed = validateCategory(req.body)
     if (!parsed.success) {
-      res.status(400).json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
       return
     }
     const category = await CategoryModel.create(parsed.data.name)
@@ -42,7 +44,9 @@ export default class CategoryController {
     }
     const bodyParsed = validateCategory(req.body)
     if (!bodyParsed.success) {
-      res.status(400).json({ error: 'Validation failed', details: formatZodErrors(bodyParsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(bodyParsed.error) })
       return
     }
     const existing = await CategoryModel.getById(idParsed.data)

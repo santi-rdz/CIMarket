@@ -1,5 +1,9 @@
 import type { RequestHandler } from 'express'
-import { validateProduct, validatePartialProduct, productsQuerySchema } from '@cm/shared/schemas/product'
+import {
+  validateProduct,
+  validatePartialProduct,
+  productsQuerySchema,
+} from '@cm/shared/schemas/product'
 import { uuidSchema } from '@cm/shared/schemas/fields'
 import { formatZodErrors } from '@cm/shared/schemas/common'
 import { parsePagination } from '#lib/utils'
@@ -9,7 +13,9 @@ export default class ProductController {
   static getAll: RequestHandler = async (req, res) => {
     const parsed = productsQuerySchema.safeParse(req.query)
     if (!parsed.success) {
-      res.status(400).json({ error: 'Invalid query params', details: formatZodErrors(parsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Invalid query params', details: formatZodErrors(parsed.error) })
       return
     }
     const { page, limit } = parsePagination(parsed.data)
@@ -18,7 +24,7 @@ export default class ProductController {
   }
 
   static getById: RequestHandler = async (req, res) => {
-    const param = req.params.id
+    const param = String(req.params.id)
     const isUuid = uuidSchema.safeParse(param).success
     const product = isUuid
       ? await ProductModel.getById(param)
@@ -33,7 +39,9 @@ export default class ProductController {
   static create: RequestHandler = async (req, res) => {
     const parsed = validateProduct(req.body)
     if (!parsed.success) {
-      res.status(400).json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
       return
     }
     const product = await ProductModel.create({ ...parsed.data, userId: req.user!.id })
@@ -48,7 +56,9 @@ export default class ProductController {
     }
     const bodyParsed = validatePartialProduct(req.body)
     if (!bodyParsed.success) {
-      res.status(400).json({ error: 'Validation failed', details: formatZodErrors(bodyParsed.error) })
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(bodyParsed.error) })
       return
     }
     const existing = await ProductModel.getById(idParsed.data)

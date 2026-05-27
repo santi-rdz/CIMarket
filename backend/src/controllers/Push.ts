@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
-import { pushSubscribeSchema } from '@cm/shared/schemas/push'
+import { pushSubscribeSchema, pushUnsubscribeSchema } from '@cm/shared/schemas/push'
+import { formatZodErrors } from '@cm/shared/schemas/common'
 import PushSubscriptionModel from '#models/PushSubscription'
 import { vapidPublicKey } from '#config/webpush'
 
@@ -10,11 +11,16 @@ export async function getVapidKey(_req: Request, res: Response) {
 export async function subscribe(req: Request, res: Response) {
   const parsed = pushSubscribeSchema.safeParse(req.body)
   if (!parsed.success) {
-    res.status(400).json({ error: 'Invalid subscription data' })
+    res
+      .status(400)
+      .json({
+        error: 'Invalid subscription data',
+        details: formatZodErrors(parsed.error),
+      })
     return
   }
 
-  const userId = req.user!.sub
+  const userId = req.user!.id
   const { endpoint, keys } = parsed.data
 
   await PushSubscriptionModel.upsert(userId, endpoint, keys.p256dh, keys.auth)
@@ -22,13 +28,18 @@ export async function subscribe(req: Request, res: Response) {
 }
 
 export async function unsubscribe(req: Request, res: Response) {
-  const { endpoint } = req.body as { endpoint?: string }
-  if (!endpoint) {
-    res.status(400).json({ error: 'endpoint required' })
+  const parsed = pushUnsubscribeSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res
+      .status(400)
+      .json({
+        error: 'Invalid subscription data',
+        details: formatZodErrors(parsed.error),
+      })
     return
   }
 
-  const userId = req.user!.sub
-  await PushSubscriptionModel.remove(userId, endpoint)
+  const userId = req.user!.id
+  await PushSubscriptionModel.remove(userId, parsed.data.endpoint)
   res.json({ unsubscribed: true })
 }

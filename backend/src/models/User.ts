@@ -33,7 +33,6 @@ export default class UserModel {
           rol: true,
           status: true,
           createdAt: true,
-          campus: { select: { id: true, name: true } },
         },
       }),
       prisma.user.count({ where }),
@@ -62,19 +61,20 @@ export default class UserModel {
           status: true,
           createdAt: true,
           updatedAt: true,
-          campus: { select: { id: true, name: true } },
-          _count: { select: { products: true, favorites: true, sellerReviews: true } },
+          _count: { select: { products: true, favorites: true, reviewsReceived: true } },
         },
       }),
-      prisma.review.aggregate({
-        where: { sellerId: id },
+      prisma.transactionReview.aggregate({
+        where: { toId: id },
         _avg: { rating: true },
         _count: { rating: true },
       }),
     ])
     if (!user) return null
+    const { reviewsReceived, ...restCount } = user._count
     return {
       ...user,
+      _count: { ...restCount, sellerReviews: reviewsReceived },
       rating: {
         average: ratingAgg._avg.rating ? Number(ratingAgg._avg.rating) : 0,
         count: ratingAgg._count.rating,
@@ -91,19 +91,20 @@ export default class UserModel {
           name: true,
           photoUrl: true,
           createdAt: true,
-          campus: { select: { id: true, name: true } },
-          _count: { select: { products: true, sellerReviews: true } },
+          _count: { select: { products: true, reviewsReceived: true } },
         },
       }),
-      prisma.review.aggregate({
-        where: { sellerId: id },
+      prisma.transactionReview.aggregate({
+        where: { toId: id },
         _avg: { rating: true },
         _count: { rating: true },
       }),
     ])
     if (!user) return null
+    const { reviewsReceived, ...restCount } = user._count
     return {
       ...user,
+      _count: { ...restCount, sellerReviews: reviewsReceived },
       rating: {
         average: ratingAgg._avg.rating ? Number(ratingAgg._avg.rating) : 0,
         count: ratingAgg._count.rating,
@@ -119,14 +120,27 @@ export default class UserModel {
     return prisma.user.findUnique({ where: { googleId } })
   }
 
-  static async upsertByGoogleId(googleId: string, data: Omit<UserInput, 'googleId'>) {
-    const existing = await prisma.user.findUnique({ where: { googleId } })
-    const user = await prisma.user.upsert({
-      where: { googleId },
-      update: { photoUrl: data.photoUrl },
-      create: { googleId, ...data },
-    })
-    return { ...user, isNewUser: !existing }
+  static async upsertByGoogleId(googleId: string, data: Omit<UserInput, 'googleId' | 'rol' | 'status'>) {
+    const existingByGoogleId = await prisma.user.findUnique({ where: { googleId } })
+    if (existingByGoogleId) {
+      const user = await prisma.user.update({
+        where: { id: existingByGoogleId.id },
+        data: { photoUrl: data.photoUrl },
+      })
+      return { ...user, isNewUser: false }
+    }
+
+    const existingByEmail = await prisma.user.findUnique({ where: { email: data.email } })
+    if (existingByEmail) {
+      const user = await prisma.user.update({
+        where: { id: existingByEmail.id },
+        data: { googleId, photoUrl: data.photoUrl },
+      })
+      return { ...user, isNewUser: false }
+    }
+
+    const user = await prisma.user.create({ data: { googleId, ...data } })
+    return { ...user, isNewUser: true }
   }
 
   static async create(data: UserInput) {

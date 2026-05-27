@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'express'
+import { USER_ROLE, type UserRole } from '@cm/shared/constants'
 import { verifyToken } from '#config/auth'
 
 /** Verifica JWT en Authorization: Bearer <token> e inyecta req.user */
@@ -33,3 +34,21 @@ export const optionalAuth: RequestHandler = async (req, _res, next) => {
   }
   next()
 }
+
+export function requireRole(...roles: UserRole[]): RequestHandler {
+  return (req, res, next) => {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' })
+      return
+    }
+
+    if (!roles.includes(req.user.rol as UserRole)) {
+      res.status(403).json({ error: 'Insufficient permissions' })
+      return
+    }
+
+    next()
+  }
+}
+
+export const requireAdmin: RequestHandler = requireRole(USER_ROLE.ADMIN)

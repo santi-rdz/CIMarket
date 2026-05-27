@@ -16,26 +16,27 @@ model User {
   googleId String @unique @db.VarChar(255) @map("google_id") 
   name String @db.VarChar(255)
   email String @unique @db.VarChar(255)
-  campusId Int @map("campus_id")
   photoUrl String? @db.VarChar(2048) @map("photo_url")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   rol UserRole @default(USER)
   status UserStatus @default(ACTIVE)
   products            Product[]
-  campus              Campus           @relation(fields: [campusId], references: [id])
   favorites           Favorite[]
   sellerReviews       Review[]         @relation("SellerReviews")
   writtenReviews      Review[]         @relation("ReviewerReviews")
   preferences         UserPreferences?
-  buyerConversations  Conversation[]   @relation("BuyerConversations")
-  sellerConversations Conversation[]   @relation("SellerConversations")
+  buyerConversations  Conversation[]      @relation("BuyerConversations")
+  sellerConversations Conversation[]      @relation("SellerConversations")
   sentMessages        Message[]
-  sentReports         Report[]         @relation("ReportAuthor")
-  receivedReports     Report[]         @relation("ReportTarget")
+  sentReports         Report[]            @relation("ReportAuthor")
+  receivedReports     Report[]            @relation("ReportTarget")
   pushSubscriptions   PushSubscription[]
   notifications       Notification[]
-  @@index([campusId])
+  sellerTransactions  Transaction[]       @relation("SellerTransactions")
+  buyerTransactions   Transaction[]       @relation("BuyerTransactions")
+  reviewsGiven        TransactionReview[] @relation("ReviewsGiven")
+  reviewsReceived     TransactionReview[] @relation("ReviewsReceived")
   @@map("users")
   
 }
@@ -58,6 +59,7 @@ model Product{
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   favorites     Favorite[]
   conversations Conversation[]
+  transaction   Transaction?
   @@index([status])
   @@index([condition])
   @@index([userId])
@@ -111,7 +113,6 @@ model Category{
 model Campus{
   id Int @id @default(autoincrement())
   name String @unique @db.VarChar(255)
-  users User[]
   products Product[]
   userPreferences UserPreferenceCampus[]
   @@map("campuses")
@@ -172,13 +173,17 @@ model Message {
 
   senderId       String       @map("sender_id")
   conversationId String       @map("conversation_id")
+  replyToId      String?      @map("reply_to_id")
 
   sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  replyTo        Message?     @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies        Message[]    @relation("MessageReplies")
 
   @@index([senderId])
   @@index([conversationId, createdAt])
   @@index([conversationId, readAt])
+  @@index([replyToId])
   @@map("messages")
 }
 
@@ -198,8 +203,43 @@ model Notification {
   @@map("notifications")
 }
 
+model Transaction {
+  id             String              @id @default(uuid())
+  productId      String              @unique @map("product_id")
+  sellerId       String              @map("seller_id")
+  buyerId        String              @map("buyer_id")
+  conversationId String?             @map("conversation_id")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  product        Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  seller         User                @relation("SellerTransactions", fields: [sellerId], references: [id], onDelete: Cascade)
+  buyer          User                @relation("BuyerTransactions", fields: [buyerId], references: [id], onDelete: Cascade)
+  reviews        TransactionReview[]
+  @@index([sellerId])
+  @@index([buyerId])
+  @@map("transactions")
+}
+
+model TransactionReview {
+  id            Int         @id @default(autoincrement())
+  transactionId String      @map("transaction_id")
+  fromId        String      @map("from_id")
+  toId          String      @map("to_id")
+  rating        Int
+  comment       String?     @db.Text
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  from          User        @relation("ReviewsGiven", fields: [fromId], references: [id], onDelete: Cascade)
+  to            User        @relation("ReviewsReceived", fields: [toId], references: [id], onDelete: Cascade)
+  @@unique([transactionId, fromId])
+  @@index([toId])
+  @@index([transactionId])
+  @@map("transaction_reviews")
+}
+
 enum NotificationType {
   MESSAGE
+  SALE_REVIEW
 }
 
 model PushSubscription {

@@ -1,10 +1,11 @@
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose'
+import { requiredEnv, requiredSecret } from '#config/env'
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET)
+const JWT_SECRET = new TextEncoder().encode(requiredSecret('JWT_SECRET'))
 const JWT_ISSUER = 'cimarket'
-const JWT_EXPIRATION = '7d'
+const JWT_EXPIRATION = process.env.JWT_EXPIRATION?.trim() || '7d'
 
-export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!
+export const GOOGLE_CLIENT_ID = requiredEnv('GOOGLE_CLIENT_ID')
 
 export interface AuthPayload extends JWTPayload {
   sub: string
@@ -12,7 +13,9 @@ export interface AuthPayload extends JWTPayload {
   rol: string
 }
 
-export async function signToken(payload: Pick<AuthPayload, 'sub' | 'email' | 'rol'>): Promise<string> {
+export async function signToken(
+  payload: Pick<AuthPayload, 'sub' | 'email' | 'rol'>,
+): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()

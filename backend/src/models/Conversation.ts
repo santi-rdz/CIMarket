@@ -1,11 +1,17 @@
 import { prisma } from '#config/prisma'
 
 const userSelect = { id: true, name: true, photoUrl: true } as const
+const replyToSelect = {
+  id: true,
+  content: true,
+  sender: { select: { id: true, name: true } },
+} as const
 const productPreview = {
   id: true,
   title: true,
   slug: true,
   price: true,
+  status: true,
   images: { select: { url: true }, take: 1 },
 } as const
 
@@ -107,6 +113,7 @@ export default class ConversationModel {
             readAt: true,
             senderId: true,
             sender: { select: userSelect },
+            replyTo: { select: replyToSelect },
           },
           orderBy: { createdAt: 'asc' },
         },
@@ -122,7 +129,12 @@ export default class ConversationModel {
   }
 
   /** Persist a message and return it formatted for broadcast */
-  static async sendMessage(conversationId: string, senderId: string, content: string) {
+  static async sendMessage(
+    conversationId: string,
+    senderId: string,
+    content: string,
+    replyToId?: string,
+  ) {
     const conv = await prisma.conversation.findUnique({
       where: { id: conversationId },
       select: {
@@ -138,8 +150,16 @@ export default class ConversationModel {
     if (!recipientId || recipientId === senderId) return null // Prevent self-notifications
     const productThumb = conv.product.images[0]?.url ?? null
 
+    if (replyToId) {
+      const reply = await prisma.message.findFirst({
+        where: { id: replyToId, conversationId },
+        select: { id: true },
+      })
+      if (!reply) return null
+    }
+
     const message = await prisma.message.create({
-      data: { content, senderId, conversationId },
+      data: { content, senderId, conversationId, replyToId: replyToId ?? null },
       select: {
         id: true,
         content: true,
@@ -147,6 +167,7 @@ export default class ConversationModel {
         conversationId: true,
         createdAt: true,
         sender: { select: userSelect },
+        replyTo: { select: replyToSelect },
       },
     })
 

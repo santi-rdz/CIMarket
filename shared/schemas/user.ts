@@ -1,13 +1,21 @@
 import { z } from 'zod'
 import { USER_ROLES, USER_STATUSES } from '../constants'
-import { paginationSchema } from './common'
+import { csvValuesSchema, optionalSearch, paginationSchema, requiredText } from './common'
 
 export const userSchema = z.object({
-  googleId: z.string().max(255, 'Máximo 255 caracteres'),
-  name: z.string().min(1, 'El nombre es requerido').max(255, 'Máximo 255 caracteres'),
-  email: z.email('Correo electrónico inválido').max(255, 'Máximo 255 caracteres'),
-  campusId: z.number({ error: 'Selecciona un campus' }).int().positive(),
-  photoUrl: z.url('URL de foto inválida').max(2048).nullish(),
+  googleId: requiredText('Google ID requerido'),
+  name: requiredText('El nombre es requerido'),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(z.email('Correo electrónico inválido').max(255, 'Máximo 255 caracteres')),
+  photoUrl: z
+    .preprocess(
+      (value) => (typeof value === 'string' && value.trim() === '' ? null : value),
+      z.url('URL de foto inválida').max(2048).nullish(),
+    )
+    .transform((value) => (typeof value === 'string' ? value.trim() : value)),
   rol: z.enum(USER_ROLES, { error: 'Rol inválido' }).optional(),
   status: z.enum(USER_STATUSES, { error: 'Estado inválido' }).optional(),
 })
@@ -15,12 +23,13 @@ export const userSchema = z.object({
 export type UserInput = z.infer<typeof userSchema>
 
 export const validateUser = (input: unknown) => userSchema.safeParse(input)
-export const validatePartialUser = (input: unknown) => userSchema.partial().safeParse(input)
+export const validatePartialUser = (input: unknown) =>
+  userSchema.partial().safeParse(input)
 
 export const authUserSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string(),
+  id: z.uuid(),
+  name: requiredText('El nombre es requerido'),
+  email: z.string().trim().toLowerCase().pipe(z.email()),
   photoUrl: z.string().nullable(),
   rol: z.enum(USER_ROLES),
 })
@@ -28,9 +37,9 @@ export const authUserSchema = z.object({
 export type AuthUser = z.infer<typeof authUserSchema>
 
 export const usersQuerySchema = paginationSchema.extend({
-  search: z.string().max(100).optional(),
-  status: z.string().optional(),
-  rol: z.string().optional(),
+  search: optionalSearch(),
+  status: csvValuesSchema(USER_STATUSES, 'Estado inválido'),
+  rol: csvValuesSchema(USER_ROLES, 'Rol inválido'),
   sortBy: z.enum(['name', 'email', 'createdAt']).optional(),
 })
 

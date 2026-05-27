@@ -1,7 +1,15 @@
 import type { RequestHandler } from 'express'
 import { uuidSchema } from '@cm/shared/schemas/fields'
+import {
+  createConversationSchema,
+  reportConversationSchema,
+  sendMessageSchema,
+} from '@cm/shared/schemas/conversation'
+import { formatZodErrors } from '@cm/shared/schemas/common'
 import ConversationModel from '#models/Conversation'
 import ReportModel from '#models/Report'
+import { getIo } from '#lib/io'
+import { ConversationMessageService } from '#lib/conversationMessages'
 
 export default class ConversationController {
   /** GET /conversations */
@@ -12,18 +20,19 @@ export default class ConversationController {
 
   /** POST /conversations  { sellerId, productId } */
   static create: RequestHandler = async (req, res) => {
-    const sellerParsed = uuidSchema.safeParse(req.body.sellerId)
-    const productParsed = uuidSchema.safeParse(req.body.productId)
-
-    if (!sellerParsed.success || !productParsed.success) {
-      res.status(400).json({ error: 'Invalid sellerId or productId' })
+    const parsed = createConversationSchema.safeParse(req.body)
+    if (!parsed.success) {
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(parsed.error) })
       return
     }
+    const { sellerId, productId } = parsed.data
 
     const conversation = await ConversationModel.getOrCreate(
       req.user!.id,
-      sellerParsed.data,
-      productParsed.data,
+      sellerId,
+      productId,
     )
 
     if (!conversation) {
@@ -42,7 +51,10 @@ export default class ConversationController {
       return
     }
 
-    const conversation = await ConversationModel.getWithMessages(parsed.data, req.user!.id)
+    const conversation = await ConversationModel.getWithMessages(
+      parsed.data,
+      req.user!.id,
+    )
     if (!conversation) {
       res.status(404).json({ error: 'Conversation not found' })
       return
@@ -102,6 +114,37 @@ export default class ConversationController {
     res.status(204).send()
   }
 
+  /** POST /conversations/:id/messages  { content } */
+  static sendMessage: RequestHandler = async (req, res) => {
+    const parsed = uuidSchema.safeParse(req.params.id)
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Invalid conversation ID' })
+      return
+    }
+
+    const bodyParsed = sendMessageSchema.safeParse(req.body)
+    if (!bodyParsed.success) {
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(bodyParsed.error) })
+      return
+    }
+    const { content, replyToId } = bodyParsed.data
+
+    const message = await ConversationMessageService.send(getIo(), {
+      conversationId: parsed.data,
+      senderId: req.user!.id,
+      content,
+      replyToId,
+    })
+    if (!message) {
+      res.status(403).json({ error: 'Conversation not found or unauthorized' })
+      return
+    }
+
+    res.status(201).json(message)
+  }
+
   /** POST /conversations/:id/report  { reason, detail? } */
   static report: RequestHandler = async (req, res) => {
     const parsed = uuidSchema.safeParse(req.params.id)
@@ -110,23 +153,34 @@ export default class ConversationController {
       return
     }
 
-    const { reason, detail } = req.body
-    const validReasons = ['SPAM', 'ACOSO', 'FRAUDE', 'CONTENIDO_INAPROPIADO', 'OTRO']
-    if (!reason || !validReasons.includes(reason)) {
-      res.status(400).json({ error: 'Invalid reason' })
+    const bodyParsed = reportConversationSchema.safeParse(req.body)
+    if (!bodyParsed.success) {
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: formatZodErrors(bodyParsed.error) })
       return
     }
+    const { reason, detail } = bodyParsed.data
 
     // Find the other user in the conversation
-    const conversation = await ConversationModel.getWithMessages(parsed.data, req.user!.id)
+    const conversation = await ConversationModel.getWithMessages(
+      parsed.data,
+      req.user!.id,
+    )
     if (!conversation) {
       res.status(404).json({ error: 'Conversation not found' })
       return
     }
 
-    const reportedId = conversation.buyerId === req.user!.id ? conversation.sellerId : conversation.buyerId
+    const reportedId =
+      conversation.buyerId === req.user!.id ? conversation.sellerId : conversation.buyerId
 
-    const report = await ReportModel.create(req.user!.id, reportedId, reason, detail)
+    const report = await ReportModel.create(
+      req.user!.id,
+      reportedId,
+      reason,
+      detail ?? undefined,
+    )
     if (!report) {
       res.status(400).json({ error: 'Cannot report yourself' })
       return

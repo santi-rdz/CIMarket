@@ -2,19 +2,27 @@ import type { ProductInput, ProductsQuery } from '#types/types'
 import { prisma } from '#config/prisma'
 import { generateUniqueSlug } from '#lib/slugify'
 
+type ProductCreateInput = ProductInput & { userId: string }
+
 export default class ProductModel {
   static async getAll({
-    search, status, condition, categoryIds, userId, campusIds,
-    minPrice, maxPrice, sortBy, order = 'desc',
-    page = 1, limit = 10,
+    search,
+    status,
+    condition,
+    categoryIds,
+    userId,
+    campusIds,
+    minPrice,
+    maxPrice,
+    sortBy,
+    order = 'desc',
+    page = 1,
+    limit = 10,
   }: ProductsQuery) {
     const where: Record<string, unknown> = {}
 
     if (search) {
-      where.OR = [
-        { title: { contains: search } },
-        { description: { contains: search } },
-      ]
+      where.OR = [{ title: { contains: search } }, { description: { contains: search } }]
     }
     if (status) {
       where.status = { in: status.split(',').map((s) => s.trim().toUpperCase()) }
@@ -93,7 +101,7 @@ export default class ProductModel {
     })
   }
 
-  static async create(data: ProductInput) {
+  static async create(data: ProductCreateInput) {
     const { images, campusIds, ...productData } = data
     const slug = await generateUniqueSlug(productData.title)
     return prisma.product.create({

@@ -1,7 +1,8 @@
 import { z } from 'zod'
+import { requiredText } from './common'
 
 export const categorySchema = z.object({
-  name: z.string().min(1).max(255),
+  name: requiredText('El nombre es requerido'),
 })
 
 export type CategoryInput = z.infer<typeof categorySchema>

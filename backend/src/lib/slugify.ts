@@ -5,12 +5,15 @@ export function slugify(text: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // strip accents
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')    // non-alphanumeric → hyphen
-    .replace(/^-+|-+$/g, '')        // trim leading/trailing hyphens
+    .replace(/[^a-z0-9]+/g, '-') // non-alphanumeric → hyphen
+    .replace(/^-+|-+$/g, '') // trim leading/trailing hyphens
     .slice(0, 250)
 }
 
-export async function generateUniqueSlug(title: string, excludeId?: string): Promise<string> {
+export async function generateUniqueSlug(
+  title: string,
+  excludeId?: string,
+): Promise<string> {
   const base = slugify(title)
   let candidate = base
   let suffix = 2

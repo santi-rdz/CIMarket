@@ -11,6 +11,7 @@
       "@cm/shared/*": ["../shared/*"],
       "#controllers/*": ["./src/controllers/*"],
       "#routes/*": ["./src/routes/*"],
+      "#docs/*": ["./src/docs/*"],
       "#lib/*": ["./src/lib/*"],
       "#models/*": ["./src/models/*"],
       "#middlewares/*": ["./src/middlewares/*"],
