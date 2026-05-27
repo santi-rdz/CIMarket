@@ -1,19 +1,22 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   HiArrowLeft,
   HiPaperAirplane,
   HiEllipsisVertical,
   HiOutlinePhoto,
+  HiXMark,
 } from 'react-icons/hi2'
-import { cn } from '@/app/lib/utils'
 import Input from '@/app/components/ui/Input'
 import { useChatMessages } from '../hooks/useChatMessages'
 import { MessageBubble } from './MessageBubble'
 import { ChatPanelSkeleton } from './MessagesSkeleton'
 import ChatActions from './ChatActions'
+import { MarkAsSoldModal } from './MarkAsSoldModal'
+import { ReviewModal } from './ReviewModal'
+import { usePendingReviews } from '@/app/hooks/useTransactions'
 
 interface Props {
   conversationId: string
@@ -28,21 +31,41 @@ export default function ChatPanel({
   onBack,
   onDeleted,
 }: Props) {
-  const { conversation, isLoading, messages, isTyping, send, notifyTyping } =
-    useChatMessages(conversationId, currentUserId)
+  const {
+    conversation,
+    isLoading,
+    messages,
+    isTyping,
+    reply,
+    setReply,
+    send,
+    notifyTyping,
+  } = useChatMessages(conversationId, currentUserId)
   const [input, setInput] = useState('')
   const [showActions, setShowActions] = useState(false)
+  const [showMarkSold, setShowMarkSold] = useState(false)
+  const [reviewDismissed, setReviewDismissed] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  const { data: pendingReviews } = usePendingReviews()
+  const restPendingReview =
+    pendingReviews?.find((t) => t.conversationId === conversationId) ?? null
+
+  function handleReply(r: Parameters<typeof setReply>[0]) {
+    setReply(r)
+    setTimeout(() => inputRef.current?.focus(), 0)
+  }
 
   // Auto-scroll to bottom on new messages or typing indicator
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isTyping])
 
-  function handleSend() {
+  async function handleSend() {
     if (!input.trim()) return
-    send(input)
-    setInput('')
+    const sent = await send(input)
+    if (sent) setInput('')
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -64,6 +87,7 @@ export default function ChatPanel({
   const otherUser =
     conversation.buyerId === currentUserId ? conversation.seller : conversation.buyer
   const product = conversation.product
+  const isSeller = conversation.sellerId === currentUserId
   const isArchived =
     conversation.buyerId === currentUserId
       ? !!conversation.buyerArchivedAt
@@ -71,6 +95,23 @@ export default function ChatPanel({
 
   return (
     <>
+      {showMarkSold && conversation && (
+        <MarkAsSoldModal
+          conversation={conversation}
+          currentUserId={currentUserId}
+          onClose={() => setShowMarkSold(false)}
+          onSuccess={() => setShowMarkSold(false)}
+        />
+      )}
+      {!reviewDismissed && restPendingReview && (
+        <ReviewModal
+          transaction={restPendingReview}
+          currentUserId={currentUserId}
+          onClose={() => {
+            setReviewDismissed(true)
+          }}
+        />
+      )}
       {/* ─── Header ─── */}
       <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
         <button
@@ -140,8 +181,11 @@ export default function ChatPanel({
             <ChatActions
               conversationId={conversationId}
               isArchived={isArchived}
+              isSeller={isSeller}
+              productStatus={product.status ?? 'DISPONIBLE'}
               onClose={() => setShowActions(false)}
               onDeleted={onDeleted}
+              onMarkAsSold={() => setShowMarkSold(true)}
             />
           )}
         </div>
@@ -161,6 +205,7 @@ export default function ChatPanel({
             isLast={
               i === messages.length - 1 || messages[i + 1]?.senderId !== msg.senderId
             }
+            onReply={handleReply}
           />
         ))}
 
@@ -171,8 +216,29 @@ export default function ChatPanel({
 
       {/* ─── Input ─── */}
       <div className="border-t border-slate-100 px-4 py-3">
+        {/* Reply preview bar */}
+        {reply && (
+          <div className="mb-2.5 flex items-center gap-3 rounded-2xl bg-slate-50 px-3 py-2.5">
+            <div className="w-[3px] self-stretch rounded-full bg-green-700 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-bold text-green-800 truncate leading-none mb-0.5">
+                {reply.sender.name}
+              </p>
+              <p className="text-[11px] text-slate-500 truncate leading-snug">
+                {reply.content}
+              </p>
+            </div>
+            <button
+              onClick={() => setReply(null)}
+              className="shrink-0 rounded-full p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
+            >
+              <HiXMark className="size-4" />
+            </button>
+          </div>
+        )}
         <div className="flex items-end gap-2">
           <Input
+            ref={inputRef as React.Ref<HTMLTextAreaElement>}
             as="textarea"
             size="md"
             value={input}

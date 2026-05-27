@@ -5,6 +5,7 @@ import {
   getConversations,
   getConversation,
   createConversation,
+  sendMessage,
   archiveConversation,
   unarchiveConversation,
   deleteConversation,
@@ -52,6 +53,28 @@ export function useCreateConversation() {
   })
 }
 
+export function useSendMessage() {
+  const queryClient = useQueryClient()
+  const token = getToken()
+
+  return useMutation({
+    mutationFn: ({
+      conversationId,
+      content,
+      replyToId,
+    }: {
+      conversationId: string
+      content: string
+      replyToId?: string
+    }) => sendMessage(conversationId, content, token!, replyToId),
+    onSuccess: (_, { conversationId }) => {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] })
+      queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] })
+    },
+    onError: toastApiError,
+  })
+}
+
 export function useArchiveConversation() {
   const queryClient = useQueryClient()
   const token = getToken()
@@ -85,8 +108,15 @@ export function useReportUser() {
   const token = getToken()
 
   return useMutation({
-    mutationFn: ({ conversationId, reason, detail }: { conversationId: string; reason: ReportReason; detail: string }) =>
-      reportUser(conversationId, reason, detail, token!),
+    mutationFn: ({
+      conversationId,
+      reason,
+      detail,
+    }: {
+      conversationId: string
+      reason: ReportReason
+      detail: string
+    }) => reportUser(conversationId, reason, detail, token!),
     onSuccess: () => {
       toast.success('Reporte enviado. Revisaremos tu caso.')
     },

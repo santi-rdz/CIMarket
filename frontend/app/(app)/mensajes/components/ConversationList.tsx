@@ -14,16 +14,20 @@ interface Props {
   onSelect: (id: string) => void
 }
 
-export default function ConversationList({ conversations, activeId, currentUserId, onSelect }: Props) {
+export default function ConversationList({
+  conversations,
+  activeId,
+  currentUserId,
+  onSelect,
+}: Props) {
   const [tab, setTab] = useState<Tab>('active')
 
   const active: Conversation[] = []
   const archived: Conversation[] = []
 
   for (const conv of conversations) {
-    const isArchived = conv.buyerId === currentUserId
-      ? !!conv.buyerArchivedAt
-      : !!conv.sellerArchivedAt
+    const isArchived =
+      conv.buyerId === currentUserId ? !!conv.buyerArchivedAt : !!conv.sellerArchivedAt
     ;(isArchived ? archived : active).push(conv)
   }
 
@@ -69,7 +73,9 @@ export default function ConversationList({ conversations, activeId, currentUserI
           <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
             <HiOutlineArchiveBox className="size-8 text-slate-200 mb-3" />
             <p className="txt-5 text-slate-400">
-              {tab === 'active' ? 'No tienes conversaciones activas' : 'No tienes conversaciones archivadas'}
+              {tab === 'active'
+                ? 'No tienes conversaciones activas'
+                : 'No tienes conversaciones archivadas'}
             </p>
           </div>
         )}
@@ -125,19 +131,43 @@ export default function ConversationList({ conversations, activeId, currentUserI
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className={cn('txt-5 truncate', unread > 0 ? 'font-bold text-slate-900' : 'font-semibold text-slate-700')}>
+                  <p
+                    className={cn(
+                      'txt-5 truncate',
+                      unread > 0
+                        ? 'font-bold text-slate-900'
+                        : 'font-semibold text-slate-700',
+                    )}
+                  >
                     {firstName}
                     <span className="font-normal text-slate-400 mx-1">·</span>
-                    <span className={cn('font-normal', unread > 0 ? 'text-slate-700' : 'text-slate-500')}>{conv.product.title}</span>
+                    <span
+                      className={cn(
+                        'font-normal',
+                        unread > 0 ? 'text-slate-700' : 'text-slate-500',
+                      )}
+                    >
+                      {conv.product.title}
+                    </span>
                   </p>
                   {lastMsg && (
-                    <span className="txt-6 shrink-0 text-slate-400">{timeAgo(lastMsg.createdAt)}</span>
+                    <span className="txt-6 shrink-0 text-slate-400">
+                      {timeAgo(lastMsg.createdAt)}
+                    </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <p className={cn('txt-6 truncate', unread > 0 ? 'font-medium text-slate-700' : 'text-slate-400')}>
+                  <p
+                    className={cn(
+                      'txt-6 truncate',
+                      unread > 0 ? 'font-medium text-slate-700' : 'text-slate-400',
+                    )}
+                  >
                     {lastMsgPrefix ? (
-                      <><span className="font-semibold">{lastMsgPrefix}:</span> {lastMsg!.content}</>
+                      <>
+                        <span className="font-semibold">{lastMsgPrefix}:</span>{' '}
+                        {lastMsg!.content}
+                      </>
                     ) : (
                       'Sin mensajes'
                     )}
@@ -149,7 +179,6 @@ export default function ConversationList({ conversations, activeId, currentUserI
                   )}
                 </div>
               </div>
-
             </button>
           )
         })}

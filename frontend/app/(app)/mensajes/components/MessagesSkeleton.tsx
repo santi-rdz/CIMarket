@@ -69,12 +69,12 @@ export function ChatPanelSkeleton() {
       {/* Messages */}
       <div className="flex-1 space-y-3 px-4 py-4">
         <MessageBubbleSkeleton isMine={false} width="w-48" />
-        <MessageBubbleSkeleton isMine={true}  width="w-56" />
-        <MessageBubbleSkeleton isMine={true}  width="w-36" />
+        <MessageBubbleSkeleton isMine={true} width="w-56" />
+        <MessageBubbleSkeleton isMine={true} width="w-36" />
         <MessageBubbleSkeleton isMine={false} width="w-64" />
         <MessageBubbleSkeleton isMine={false} width="w-40" />
-        <MessageBubbleSkeleton isMine={true}  width="w-52" />
-        <MessageBubbleSkeleton isMine={true}  width="w-44" />
+        <MessageBubbleSkeleton isMine={true} width="w-52" />
+        <MessageBubbleSkeleton isMine={true} width="w-44" />
         <MessageBubbleSkeleton isMine={false} width="w-48" />
       </div>
 

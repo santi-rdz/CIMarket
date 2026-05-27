@@ -1,9 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { HiOutlineArchiveBox, HiOutlineTrash, HiOutlineFlag } from 'react-icons/hi2'
+import { HiOutlineArchiveBox, HiOutlineTrash, HiOutlineFlag, HiOutlineCheckBadge } from 'react-icons/hi2'
 import useClickOutside from '@/app/hooks/useClickOutside'
-import { useArchiveConversation, useDeleteConversation, useReportUser } from '@/app/hooks/useConversations'
+import {
+  useArchiveConversation,
+  useDeleteConversation,
+  useReportUser,
+} from '@/app/hooks/useConversations'
 import type { ReportReason } from '@/app/types/conversation'
 
 const REPORT_REASONS: { value: ReportReason; label: string }[] = [
@@ -17,11 +21,22 @@ const REPORT_REASONS: { value: ReportReason; label: string }[] = [
 interface Props {
   conversationId: string
   isArchived: boolean
+  isSeller: boolean
+  productStatus: string
   onClose: () => void
   onDeleted: () => void
+  onMarkAsSold: () => void
 }
 
-export default function ChatActions({ conversationId, isArchived, onClose, onDeleted }: Props) {
+export default function ChatActions({
+  conversationId,
+  isArchived,
+  isSeller,
+  productStatus,
+  onClose,
+  onDeleted,
+  onMarkAsSold,
+}: Props) {
   const ref = useClickOutside<HTMLDivElement>(onClose)
   const [view, setView] = useState<'menu' | 'report' | 'confirmDelete'>('menu')
   const [reportReason, setReportReason] = useState<ReportReason | null>(null)
@@ -60,6 +75,18 @@ export default function ChatActions({ conversationId, isArchived, onClose, onDel
     >
       {view === 'menu' && (
         <>
+          {isSeller && productStatus === 'DISPONIBLE' && (
+            <>
+              <button
+                onClick={() => { onClose(); onMarkAsSold() }}
+                className="flex w-full items-center gap-2.5 px-4 py-2.5 txt-5 text-green-700 hover:bg-green-50 transition-colors"
+              >
+                <HiOutlineCheckBadge className="size-4" />
+                Marcar como vendido
+              </button>
+              <hr className="my-1 border-slate-100" />
+            </>
+          )}
           <button
             onClick={handleArchive}
             className="flex w-full items-center gap-2.5 px-4 py-2.5 txt-5 text-slate-700 hover:bg-slate-50 transition-colors"
@@ -89,7 +116,8 @@ export default function ChatActions({ conversationId, isArchived, onClose, onDel
         <div className="px-4 py-3 space-y-3">
           <p className="txt-5 font-semibold text-slate-900">¿Eliminar conversación?</p>
           <p className="txt-6 text-slate-500 leading-relaxed">
-            No podrás ver los mensajes de esta conversación. El otro usuario aún podrá verla.
+            No podrás ver los mensajes de esta conversación. El otro usuario aún podrá
+            verla.
           </p>
           <div className="flex gap-2">
             <button

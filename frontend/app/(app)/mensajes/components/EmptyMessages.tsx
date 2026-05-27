@@ -13,9 +13,13 @@ export default function EmptyMessages() {
         </div>
         <h2 className="txt-4 font-bold text-slate-900">Sin conversaciones</h2>
         <p className="mt-2 txt-5 text-slate-400 leading-relaxed">
-          Cuando contactes a un vendedor desde un producto, tu conversación aparecerá aquí.
+          Cuando contactes a un vendedor desde un producto, tu conversación aparecerá
+          aquí.
         </p>
-        <Link href={productsHref} className="mt-5 inline-block txt-5 font-semibold text-green-700 hover:underline">
+        <Link
+          href={productsHref}
+          className="mt-5 inline-block txt-5 font-semibold text-green-700 hover:underline"
+        >
           Explorar productos
         </Link>
       </div>

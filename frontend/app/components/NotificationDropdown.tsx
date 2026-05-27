@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { HiOutlineBell, HiCheck, HiOutlinePhoto } from 'react-icons/hi2'
+import { HiOutlineBell, HiCheck, HiOutlinePhoto, HiStar } from 'react-icons/hi2'
 import { cn, timeAgo } from '@/app/lib/utils'
 import useClickOutside from '@/app/hooks/useClickOutside'
 import { useNotifications } from '@/app/hooks/useNotifications'
+import { useReview } from '@/app/context/ReviewContext'
 import type { AppNotification } from '@/app/types/notification'
 
 interface Props {
@@ -14,11 +15,18 @@ interface Props {
 
 export default function NotificationDropdown({ onClose }: Props) {
   const ref = useClickOutside<HTMLDivElement>(onClose)
-  const { notifications, unreadCount, isLoading, markRead, markAllRead } = useNotifications()
+  const { notifications, unreadCount, isLoading, markRead, markAllRead } =
+    useNotifications()
+  const { openReview } = useReview()
 
-  const handleClick = (notif: AppNotification) => {
+  const handleClick = (notif: AppNotification, e: React.MouseEvent) => {
     if (!notif.readAt) markRead(notif.id)
     onClose()
+    if (notif.type === 'SALE_REVIEW') {
+      e.preventDefault()
+      const reviewId = new URL(notif.url, window.location.origin).searchParams.get('reviewId')
+      if (reviewId) openReview(reviewId)
+    }
   }
 
   return (
@@ -63,20 +71,21 @@ export default function NotificationDropdown({ onClose }: Props) {
         )}
 
         {notifications.map((notif) => {
-          const firstName = notif.title.split(' ')[0]
+          const isReview = notif.type === 'SALE_REVIEW'
+          const displayName = isReview ? notif.title : notif.title.split(' ')[0]
           const unread = !notif.readAt
 
           return (
             <Link
               key={notif.id}
-              href={notif.url}
-              onClick={() => handleClick(notif)}
+              href={notif.type === 'SALE_REVIEW' ? '#' : notif.url}
+              onClick={(e) => handleClick(notif, e)}
               className={cn(
                 'flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50',
                 unread && 'bg-green-50/50 hover:bg-green-50',
               )}
             >
-              {/* Stacked avatar: product thumb + user photo */}
+              {/* Image + badge */}
               <div className="relative size-10 shrink-0">
                 {notif.imageUrl ? (
                   <img src={notif.imageUrl} className="size-10 rounded-xl object-cover" />
@@ -85,7 +94,11 @@ export default function NotificationDropdown({ onClose }: Props) {
                     <HiOutlinePhoto className="size-4 text-slate-300" />
                   </div>
                 )}
-                {notif.avatarUrl ? (
+                {isReview ? (
+                  <div className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-amber-400 ring-2 ring-white">
+                    <HiStar className="size-2.5 text-white" />
+                  </div>
+                ) : notif.avatarUrl ? (
                   <img
                     src={notif.avatarUrl}
                     referrerPolicy="no-referrer"
@@ -93,7 +106,7 @@ export default function NotificationDropdown({ onClose }: Props) {
                   />
                 ) : (
                   <div className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-slate-700 ring-2 ring-white text-[7px] font-bold text-white">
-                    {firstName[0]?.toUpperCase()}
+                    {displayName[0]?.toUpperCase()}
                   </div>
                 )}
               </div>
@@ -101,10 +114,17 @@ export default function NotificationDropdown({ onClose }: Props) {
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className={cn('txt-5 truncate', unread ? 'font-semibold text-slate-900' : 'text-slate-600')}>
-                    {firstName}
+                  <p
+                    className={cn(
+                      'txt-5 truncate',
+                      unread ? 'font-semibold text-slate-900' : 'text-slate-600',
+                    )}
+                  >
+                    {displayName}
                   </p>
-                  <span className="txt-6 shrink-0 text-slate-400">{timeAgo(notif.createdAt)}</span>
+                  <span className="txt-6 shrink-0 text-slate-400">
+                    {timeAgo(notif.createdAt)}
+                  </span>
                 </div>
                 <p className="txt-6 text-slate-400 truncate">{notif.body}</p>
               </div>

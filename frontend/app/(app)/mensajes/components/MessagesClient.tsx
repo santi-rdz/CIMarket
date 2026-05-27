@@ -16,9 +16,10 @@ export default function MessagesClient() {
   const { data: me } = useMe()
   const [activeId, setActiveId] = useState<string | null>(searchParams.get('chat'))
 
-  // Sync from URL on mount
+  // Sync activeId when URL param changes (e.g. notification click)
   useEffect(() => {
     const chatId = searchParams.get('chat')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (chatId) setActiveId(chatId)
   }, [searchParams])
 

@@ -1,5 +1,9 @@
 import { fetchApi } from '@/app/lib/fetchApi'
-import type { Conversation, ConversationDetail, ReportReason } from '@/app/types/conversation'
+import type {
+  Conversation,
+  ConversationDetail,
+  ReportReason,
+} from '@/app/types/conversation'
 
 export function getConversations(token: string) {
   return fetchApi<Conversation[]>('/conversations', { token })
@@ -38,7 +42,32 @@ export function deleteConversation(id: string, token: string) {
   })
 }
 
-export function reportUser(conversationId: string, reason: ReportReason, detail: string, token: string) {
+export function sendMessage(
+  conversationId: string,
+  content: string,
+  token: string,
+  replyToId?: string,
+) {
+  return fetchApi<{
+    id: string
+    content: string
+    senderId: string
+    conversationId: string
+    createdAt: string
+    replyTo: { id: string; content: string; sender: { id: string; name: string } } | null
+  }>(`/conversations/${conversationId}/messages`, {
+    method: 'POST',
+    body: JSON.stringify({ content, ...(replyToId ? { replyToId } : {}) }),
+    token,
+  })
+}
+
+export function reportUser(
+  conversationId: string,
+  reason: ReportReason,
+  detail: string,
+  token: string,
+) {
   return fetchApi<{ reported: boolean }>(`/conversations/${conversationId}/report`, {
     method: 'POST',
     body: JSON.stringify({ reason, detail }),

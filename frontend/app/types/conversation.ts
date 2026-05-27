@@ -4,6 +4,12 @@ export type MessageSender = {
   photoUrl: string | null
 }
 
+export type MessageReply = {
+  id: string
+  content: string
+  sender: { id: string; name: string }
+}
+
 export type Message = {
   id: string
   content: string
@@ -12,6 +18,7 @@ export type Message = {
   conversationId: string
   createdAt: string
   readAt: string | null
+  replyTo: MessageReply | null
 }
 
 export type ConversationProduct = {
@@ -19,6 +26,7 @@ export type ConversationProduct = {
   title: string
   slug: string
   price: string
+  status: string
   images: { url: string }[]
 }
 
@@ -46,7 +54,7 @@ export type ConversationDetail = {
   sellerArchivedAt: string | null
   buyer: MessageSender & { email: string }
   seller: MessageSender & { email: string }
-  product: ConversationProduct & { description: string }
+  product: ConversationProduct & { description: string; status: string }
   messages: Message[]
 }
 

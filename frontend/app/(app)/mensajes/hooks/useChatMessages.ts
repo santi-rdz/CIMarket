@@ -2,10 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { useSocket } from '@/app/hooks/useSocket'
 import { useConversation } from '@/app/hooks/useConversations'
 import { markNotificationRead } from '@/app/services/notificationApi'
-import type { Conversation, ConversationDetail, Message } from '@/app/types/conversation'
+import type {
+  Conversation,
+  ConversationDetail,
+  Message,
+  MessageReply,
+} from '@/app/types/conversation'
 import type { AppNotification, NotificationsResponse } from '@/app/types/notification'
 
 interface UseChatMessagesReturn {
@@ -13,9 +19,13 @@ interface UseChatMessagesReturn {
   isLoading: boolean
   messages: Message[]
   isTyping: boolean
-  send: (content: string) => void
+  reply: MessageReply | null
+  setReply: (msg: MessageReply | null) => void
+  send: (content: string) => Promise<boolean>
   notifyTyping: () => void
 }
+
+type SendMessageAck = { ok: true; message: Message } | { ok: false; error: string }
 
 export function useChatMessages(
   conversationId: string,
@@ -29,6 +39,7 @@ export function useChatMessages(
   const [socketMessages, setSocketMessages] = useState<Message[]>([])
   const [readAt, setReadAt] = useState<string | null>(null)
   const [isTyping, setIsTyping] = useState(false)
+  const [reply, setReply] = useState<MessageReply | null>(null)
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null)
 
   // Derive messages: API base + socket additions, with read status applied
@@ -51,7 +62,7 @@ export function useChatMessages(
         ? { ...m, readAt }
         : m,
     )
-  }, [conversation?.messages, socketMessages, readAt, currentUserId])
+  }, [conversation?.messages, socketMessages, readAt, currentUserId, conversationId])
 
   // Mark related notifications as read when chat is opened
   useEffect(() => {
@@ -85,8 +96,14 @@ export function useChatMessages(
   useEffect(() => {
     if (!socket || !conversationId) return
 
-    socket.emit('join_conversation', conversationId)
-    socket.emit('mark_as_read', conversationId)
+    function joinConversation() {
+      socket!.emit('join_conversation', conversationId)
+      socket!.emit('mark_as_read', conversationId)
+    }
+
+    joinConversation()
+    // Re-join if socket reconnects (server drops room memberships on disconnect)
+    socket.on('connect', joinConversation)
 
     // Clear unread count for this conversation in the list cache
     queryClient.setQueryData<Conversation[]>(['conversations'], (prev) =>
@@ -119,6 +136,7 @@ export function useChatMessages(
     socket.on('user_typing', onTyping)
 
     return () => {
+      socket.off('connect', joinConversation)
       socket.emit('leave_conversation', conversationId)
       socket.off('new_message', onNewMessage as Parameters<typeof socket.off>[1])
       socket.off('messages_read', onMessagesRead)
@@ -126,9 +144,41 @@ export function useChatMessages(
     }
   }, [socket, conversationId, currentUserId, queryClient])
 
-  function send(content: string) {
-    if (!socket || !content.trim()) return
-    socket.emit('send_message', { conversationId, content: content.trim() })
+  async function send(content: string) {
+    if (!content.trim()) return false
+    if (!socket?.connected) {
+      toast.error('No hay conexión en tiempo real. Intenta de nuevo en unos segundos.')
+      return false
+    }
+
+    const replyToId = reply?.id
+
+    return new Promise<boolean>((resolve) => {
+      socket.timeout(5000).emit(
+        'send_message',
+        {
+          conversationId,
+          content: content.trim(),
+          ...(replyToId ? { replyToId } : {}),
+        },
+        (err: Error | null, response?: SendMessageAck) => {
+          if (err || !response) {
+            toast.error('No se pudo enviar el mensaje')
+            resolve(false)
+            return
+          }
+
+          if (!response.ok) {
+            toast.error(response.error)
+            resolve(false)
+            return
+          }
+
+          setReply(null)
+          resolve(true)
+        },
+      )
+    })
   }
 
   function notifyTyping() {
@@ -141,5 +191,14 @@ export function useChatMessages(
     )
   }
 
-  return { conversation, isLoading, messages, isTyping, send, notifyTyping }
+  return {
+    conversation,
+    isLoading,
+    messages,
+    isTyping,
+    reply,
+    setReply,
+    send,
+    notifyTyping,
+  }
 }

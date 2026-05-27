@@ -1,14 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { usePushNotifications } from '@/app/hooks/usePushNotifications'
 
 export default function PushSetup() {
-  const [token, setToken] = useState<string | null>(null)
-
-  useEffect(() => {
-    setToken(localStorage.getItem('token'))
-  }, [])
+  const [token] = useState<string | null>(() =>
+    typeof window !== 'undefined' ? localStorage.getItem('token') : null,
+  )
 
   usePushNotifications(token)
   return null

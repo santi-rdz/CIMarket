@@ -1,4 +1,4 @@
-export type NotificationType = 'MESSAGE'
+export type NotificationType = 'MESSAGE' | 'SALE_REVIEW'
 
 export type AppNotification = {
   id: number
