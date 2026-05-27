@@ -7,3 +7,5 @@ export const authRouter: IRouter = Router()
 
 authRouter.post('/google', authRateLimiter, AuthController.google)
 authRouter.get('/me', requireAuth, AuthController.me)
+authRouter.post('/refresh', authRateLimiter, AuthController.refresh)
+authRouter.post('/logout', AuthController.logout)
