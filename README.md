@@ -3,9 +3,8 @@
 > Marketplace universitario para la comunidad UABC — compra, vende e intercambia de forma segura.
 
 ---
+<img width="400" height="auto" alt="Screenshot 2026-05-27 at 4 57 03 p m" src="https://github.com/user-attachments/assets/a902aad6-ea6f-4c6a-a95e-c1d8807a0b29" />
 
-<!-- Agrega tu captura aquí -->
-<!-- ![App screenshot](./docs/screenshot.png) -->
 
 ---
 
