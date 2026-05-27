@@ -1,6 +1,6 @@
 'use client'
 
-import { HiHeart, HiOutlineHeart } from 'react-icons/hi'
+import { HiHeart, HiOutlineHeart } from 'react-icons/hi2'
 import { cn } from '@/app/lib/utils'
 import { useFavorite } from '@/app/hooks/useFavorite'
 
@@ -32,14 +32,15 @@ export default function FavoriteButton({
         disabled={isPending}
         aria-label={favorited ? 'Quitar de favoritos' : 'Agregar a favoritos'}
         className={cn(
-          'flex size-7 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm transition-all duration-160 disabled:opacity-50',
+          'flex size-9 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm transition-all duration-150 hover:scale-110 hover:bg-white active:scale-95 disabled:opacity-50',
+          favorited && 'bg-red-50/90 hover:bg-red-50',
           className,
         )}
       >
         {favorited ? (
-          <HiHeart className="size-3.5 text-red-500" />
+          <HiHeart className="size-5 text-red-500 drop-shadow-sm" />
         ) : (
-          <HiOutlineHeart className="size-3 text-slate-900" />
+          <HiOutlineHeart className="size-5 text-slate-600" />
         )}
       </button>
     )
@@ -52,17 +53,17 @@ export default function FavoriteButton({
       disabled={isPending}
       aria-label={favorited ? 'Quitar de favoritos' : 'Agregar a favoritos'}
       className={cn(
-        'flex size-9 items-center justify-center rounded-full border transition-colors disabled:opacity-50',
+        'flex size-10 items-center justify-center rounded-full border transition-all duration-150 hover:scale-105 active:scale-95 disabled:opacity-50',
         favorited
           ? 'border-red-200 bg-red-50 text-red-500 hover:bg-red-100'
-          : 'border-slate-200 text-slate-500 hover:bg-slate-50',
+          : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50',
         className,
       )}
     >
       {favorited ? (
-        <HiHeart className="size-[18px]" />
+        <HiHeart className="size-5" />
       ) : (
-        <HiOutlineHeart className="size-[18px]" />
+        <HiOutlineHeart className="size-5" />
       )}
     </button>
   )
