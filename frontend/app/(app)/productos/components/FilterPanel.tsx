@@ -6,7 +6,6 @@ import { cn } from '@/app/lib/utils'
 import { Button } from '@/app/components/ui/button'
 import PriceRangeSlider from '@/app/components/ui/PriceRangeSlider'
 import { useCategories } from '@/app/hooks/useCategories'
-import { useCampuses } from '@/app/hooks/useCampuses'
 import type { ActiveFilters } from '@/app/types/filters'
 import { DEFAULT_FILTERS } from '@/app/types/filters'
 
@@ -72,9 +71,8 @@ export default function FilterPanel({ isOpen, filters, onClose, onApply }: Props
 }
 
 function FilterPanelInner({ filters, onClose, onApply }: Omit<Props, 'isOpen'>) {
-  const { data: categories = [] } = useCategories()
-  const { data: campuses = [] } = useCampuses()
   const [draft, setDraft] = useState<ActiveFilters>(filters)
+  const { data: categories = [] } = useCategories()
 
   function toggleCategory(id: number) {
     setDraft((prev) => ({
@@ -83,23 +81,6 @@ function FilterPanelInner({ filters, onClose, onApply }: Omit<Props, 'isOpen'>) 
         ? prev.categoryIds.filter((c) => c !== id)
         : [...prev.categoryIds, id],
     }))
-  }
-
-  function clearCategories() {
-    setDraft((prev) => ({ ...prev, categoryIds: [] }))
-  }
-
-  function toggleCampus(id: number) {
-    setDraft((prev) => ({
-      ...prev,
-      campusIds: prev.campusIds.includes(id)
-        ? prev.campusIds.filter((c) => c !== id)
-        : [...prev.campusIds, id],
-    }))
-  }
-
-  function clearCampuses() {
-    setDraft((prev) => ({ ...prev, campusIds: [] }))
   }
 
   function toggleCondition(value: string) {
@@ -148,30 +129,14 @@ function FilterPanelInner({ filters, onClose, onApply }: Omit<Props, 'isOpen'>) 
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto">
-          {/* Campus */}
-          <section className="px-6 py-5 border-t border-slate-100">
-            <SectionTitle>Campus</SectionTitle>
-            <div className="flex flex-wrap gap-2">
-              <Chip active={draft.campusIds.length === 0} onClick={clearCampuses}>
-                Todos
-              </Chip>
-              {campuses.map((campus) => (
-                <Chip
-                  key={campus.id}
-                  active={draft.campusIds.includes(campus.id)}
-                  onClick={() => toggleCampus(campus.id)}
-                >
-                  {campus.name}
-                </Chip>
-              ))}
-            </div>
-          </section>
-
           {/* Categoría */}
-          <section className="px-6 py-5 border-t border-slate-100">
+          <section className="px-6 py-5">
             <SectionTitle>Categoría</SectionTitle>
             <div className="flex flex-wrap gap-2">
-              <Chip active={draft.categoryIds.length === 0} onClick={clearCategories}>
+              <Chip
+                active={draft.categoryIds.length === 0}
+                onClick={() => setDraft((prev) => ({ ...prev, categoryIds: [] }))}
+              >
                 Todos
               </Chip>
               {categories.map((cat) => (
@@ -209,8 +174,8 @@ function FilterPanelInner({ filters, onClose, onApply }: Omit<Props, 'isOpen'>) 
             <div className="mb-4 flex items-end gap-3">
               <div className="flex-1">
                 <p className="mb-1.5 txt-6 text-slate-400">MÍNIMO</p>
-                <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2.5 transition-colors focus-within:border-slate-400">
-                  <span className="txt-5 text-slate-300">$</span>
+                <div className="input flex items-center gap-1.5 rounded-xl px-3 py-2.5">
+                  <span className="txt-5 text-slate-400">$</span>
                   <input
                     type="number"
                     min={0}
@@ -232,8 +197,8 @@ function FilterPanelInner({ filters, onClose, onApply }: Omit<Props, 'isOpen'>) 
 
               <div className="flex-1">
                 <p className="mb-1.5 txt-6 text-slate-400">MÁXIMO</p>
-                <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2.5 transition-colors focus-within:border-slate-400">
-                  <span className="txt-5 text-slate-300">$</span>
+                <div className="input flex items-center gap-1.5 rounded-xl px-3 py-2.5">
+                  <span className="txt-5 text-slate-400">$</span>
                   <input
                     type="number"
                     min={0}

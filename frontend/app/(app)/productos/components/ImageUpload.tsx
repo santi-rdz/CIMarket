@@ -15,7 +15,12 @@ interface Props {
   onRemoveExisting?: (index: number) => void
 }
 
-export default function ImageUpload({ files, onChange, existingUrls = [], onRemoveExisting }: Props) {
+export default function ImageUpload({
+  files,
+  onChange,
+  existingUrls = [],
+  onRemoveExisting,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const totalCount = existingUrls.length + files.length
 
@@ -54,7 +59,10 @@ export default function ImageUpload({ files, onChange, existingUrls = [], onRemo
   return (
     <div className="grid w-full grid-cols-4 gap-2">
       {existingUrls.map((url, i) => (
-        <div key={`existing-${i}`} className="group relative aspect-square overflow-hidden rounded-xl bg-slate-100">
+        <div
+          key={`existing-${i}`}
+          className="group relative aspect-square overflow-hidden rounded-xl bg-slate-100"
+        >
           <img src={url} alt={`Imagen ${i + 1}`} className="size-full object-cover" />
           {onRemoveExisting && (
             <button
@@ -69,7 +77,10 @@ export default function ImageUpload({ files, onChange, existingUrls = [], onRemo
       ))}
 
       {files.map((file, i) => (
-        <div key={`new-${i}`} className="group relative aspect-square overflow-hidden rounded-xl bg-slate-100">
+        <div
+          key={`new-${i}`}
+          className="group relative aspect-square overflow-hidden rounded-xl bg-slate-100"
+        >
           <img
             src={URL.createObjectURL(file)}
             alt={`Nueva imagen ${i + 1}`}

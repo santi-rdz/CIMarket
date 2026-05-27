@@ -7,12 +7,18 @@ interface CheckboxProps {
   className?: string
 }
 
-export default function Checkbox({ checked = false, onChange, className }: CheckboxProps) {
+export default function Checkbox({
+  checked = false,
+  onChange,
+  className,
+}: CheckboxProps) {
   const Tag = onChange ? 'button' : 'span'
 
   return (
     <Tag
-      {...(onChange ? { type: 'button' as const, onClick: () => onChange(!checked) } : {})}
+      {...(onChange
+        ? { type: 'button' as const, onClick: () => onChange(!checked) }
+        : {})}
       role="checkbox"
       aria-checked={checked}
       className={cn(

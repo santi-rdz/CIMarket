@@ -30,7 +30,7 @@ export function useFavorite(productId: string) {
     },
     onSuccess: (result) => {
       qc.setQueryData(key, result)
-      qc.invalidateQueries({ queryKey: ['me-favorites'] })
+      qc.invalidateQueries({ queryKey: ['user-favorites'] })
     },
   })
 

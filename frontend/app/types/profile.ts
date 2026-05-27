@@ -1,4 +1,3 @@
-import type { Campus } from './campus'
 import type { Product } from './product'
 
 export type UserProfile = {
@@ -8,7 +7,6 @@ export type UserProfile = {
   photoUrl: string | null
   rol: 'USER' | 'ADMIN'
   status: 'ACTIVE' | 'BANNED'
-  campus: Campus
   createdAt: string
   _count: {
     products: number
@@ -26,7 +24,6 @@ export type PublicProfile = {
   name: string
   photoUrl: string | null
   createdAt: string
-  campus: Campus
   _count: {
     products: number
     sellerReviews: number
@@ -45,13 +42,18 @@ export type UserPreferences = {
 
 export type ProfileReview = {
   id: number
-  rating: string
+  rating: number
   comment: string | null
   createdAt: string
   reviewer: {
     id: string
     name: string
     photoUrl: string | null
+  }
+  product: {
+    id: string
+    title: string
+    slug: string
   }
 }
 

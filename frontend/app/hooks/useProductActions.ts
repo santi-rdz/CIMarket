@@ -10,14 +10,20 @@ function token() {
   return typeof window !== 'undefined' ? (localStorage.getItem('token') ?? '') : ''
 }
 
+/** Keys affected any time a product's data changes */
+function invalidateProductQueries(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: ['product'] })
+  qc.invalidateQueries({ queryKey: ['products'] })
+  qc.invalidateQueries({ queryKey: ['user-products'] })
+  qc.invalidateQueries({ queryKey: ['relatedProducts'] })
+}
+
 export function useUpdateProduct(productId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: Partial<ProductInput>) => updateProduct(productId, data, token()),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['product'] })
-      qc.invalidateQueries({ queryKey: ['products'] })
-      qc.invalidateQueries({ queryKey: ['user-products'] })
+      invalidateProductQueries(qc)
       toast.success('Producto actualizado')
     },
     onError: toastApiError,
@@ -29,9 +35,9 @@ export function useDeleteProduct(productId: string) {
   return useMutation({
     mutationFn: () => deleteProduct(productId, token()),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['product'] })
-      qc.invalidateQueries({ queryKey: ['products'] })
-      qc.invalidateQueries({ queryKey: ['user-products'] })
+      invalidateProductQueries(qc)
+      // Removed product may still be in someone's favorites list
+      qc.invalidateQueries({ queryKey: ['user-favorites'] })
       toast.success('Producto eliminado')
     },
     onError: toastApiError,
@@ -41,11 +47,10 @@ export function useDeleteProduct(productId: string) {
 export function useUpdateProductStatus(productId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (status: string) => updateProduct(productId, { status } as Partial<ProductInput>, token()),
+    mutationFn: (status: string) =>
+      updateProduct(productId, { status } as Partial<ProductInput>, token()),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['product'] })
-      qc.invalidateQueries({ queryKey: ['products'] })
-      qc.invalidateQueries({ queryKey: ['user-products'] })
+      invalidateProductQueries(qc)
       toast.success('Estado actualizado')
     },
     onError: toastApiError,

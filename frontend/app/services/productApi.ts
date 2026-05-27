@@ -4,13 +4,19 @@ import type { Product, ProductDetail, ProductsResponse } from '@/app/types/produ
 
 export type { Product, ProductDetail, ProductsResponse }
 
-export function getProducts(query: Partial<ProductsQuery> = {}, options?: { token?: string; signal?: AbortSignal }) {
+export function getProducts(
+  query: Partial<ProductsQuery> = {},
+  options?: { token?: string; signal?: AbortSignal },
+) {
   const params = new URLSearchParams(
     Object.entries(query)
       .filter(([, v]) => v !== undefined)
       .map(([k, v]) => [k, String(v)]),
   ).toString()
-  return fetchApi<ProductsResponse>(`/products${params ? `?${params}` : ''}`, { token: options?.token, signal: options?.signal })
+  return fetchApi<ProductsResponse>(`/products${params ? `?${params}` : ''}`, {
+    token: options?.token,
+    signal: options?.signal,
+  })
 }
 
 export function getProduct(slugOrId: string, token?: string) {

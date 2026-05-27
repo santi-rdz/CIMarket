@@ -28,8 +28,17 @@ type Props = {
   submitLabel?: string
 }
 
-export default function StepDetails({ form, onSubmit, isPending, submitLabel = 'Publicar artículo' }: Props) {
-  const { control, register, formState: { errors, isValid } } = form
+export default function StepDetails({
+  form,
+  onSubmit,
+  isPending,
+  submitLabel = 'Publicar artículo',
+}: Props) {
+  const {
+    control,
+    register,
+    formState: { errors, isValid },
+  } = form
   const { data: categories = [] } = useCategories()
 
   return (
@@ -64,7 +73,11 @@ export default function StepDetails({ form, onSubmit, isPending, submitLabel = '
             control={control}
             name="condition"
             render={({ field }) => (
-              <Select className="w-full" value={field.value ?? ''} onValueChange={field.onChange}>
+              <Select
+                className="w-full"
+                value={field.value ?? ''}
+                onValueChange={field.onChange}
+              >
                 <SelectTrigger placeholder="Estado" />
                 <SelectContent>
                   {PRODUCT_CONDITIONS.map((c) => (

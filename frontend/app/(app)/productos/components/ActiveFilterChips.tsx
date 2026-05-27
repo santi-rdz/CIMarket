@@ -1,8 +1,6 @@
 'use client'
 
 import { HiXMark } from 'react-icons/hi2'
-import { useCategories } from '@/app/hooks/useCategories'
-import { useCampuses } from '@/app/hooks/useCampuses'
 import type { ActiveFilters } from '@/app/types/filters'
 import { formatPrice } from '@/app/lib/utils'
 
@@ -32,37 +30,7 @@ function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
 }
 
 export default function ActiveFilterChips({ filters, onRemove }: Props) {
-  const { data: categories = [] } = useCategories()
-  const { data: campuses = [] } = useCampuses()
-
   const chips: { key: string; label: string; remove: () => void }[] = []
-
-  // Campus chips
-  if (filters.campusIds.length > 0) {
-    const names = filters.campusIds
-      .map((id) => campuses.find((c) => c.id === id)?.name)
-      .filter(Boolean)
-    if (names.length > 0) {
-      chips.push({
-        key: 'campus',
-        label: names.length === 1 ? names[0]! : `${names.length} campus`,
-        remove: () => onRemove({ ...filters, campusIds: [] }),
-      })
-    }
-  }
-
-  // Category chips
-  for (const catId of filters.categoryIds) {
-    const cat = categories.find((c) => c.id === catId)
-    if (cat) {
-      chips.push({
-        key: `cat-${catId}`,
-        label: cat.name,
-        remove: () =>
-          onRemove({ ...filters, categoryIds: filters.categoryIds.filter((id) => id !== catId) }),
-      })
-    }
-  }
 
   // Condition chip
   if (filters.condition) {

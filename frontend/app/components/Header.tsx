@@ -99,7 +99,7 @@ export default function Header() {
       >
         <div
           className={cn(
-            'mx-auto flex max-w-[1440px] items-center gap-4 px-6 md:gap-6 transition-all duration-300',
+            'mx-auto flex max-w-[1600px] items-center gap-4 px-6 md:gap-6 transition-all duration-300',
             compact ? 'py-1.5' : 'py-3',
           )}
         >
@@ -116,8 +116,18 @@ export default function Header() {
               <NewProductModal trigger={{ size: 'sm', label: 'Vender' }} />
             </div>
 
-            <IconButton compact={compact} badge={0} href="/mensajes" aria-label="Mensajes">
-              <HiOutlineChatBubbleBottomCenter className={cn('transition-all duration-300', compact ? 'h-4 w-4' : 'h-5 w-5')} />
+            <IconButton
+              compact={compact}
+              badge={0}
+              href="/mensajes"
+              aria-label="Mensajes"
+            >
+              <HiOutlineChatBubbleBottomCenter
+                className={cn(
+                  'transition-all duration-300',
+                  compact ? 'h-4 w-4' : 'h-5 w-5',
+                )}
+              />
             </IconButton>
 
             {/* Notifications */}
@@ -128,10 +138,18 @@ export default function Header() {
                 aria-label="Notificaciones"
                 onClick={() => setShowNotifs((v) => !v)}
               >
-                <HiOutlineBell className={cn('transition-all duration-300', compact ? 'h-4 w-4' : 'h-5 w-5')} />
+                <HiOutlineBell
+                  className={cn(
+                    'transition-all duration-300',
+                    compact ? 'h-4 w-4' : 'h-5 w-5',
+                  )}
+                />
               </IconButton>
               {showNotifs && (
-                <NotificationDropdown compact={compact} onClose={() => setShowNotifs(false)} />
+                <NotificationDropdown
+                  compact={compact}
+                  onClose={() => setShowNotifs(false)}
+                />
               )}
             </div>
 

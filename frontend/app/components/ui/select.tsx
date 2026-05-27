@@ -302,42 +302,66 @@ export function SelectContent({
   children,
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
-  const { open, contentId, triggerId, triggerRef } = useSelect()
+  const { open, contentId, triggerId, triggerRef, search } = useSelect()
   const [pos, setPos] = React.useState({ top: 0, left: 0, width: 0 })
+  const contentRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
     if (!open || !triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
-    setPos({
-      top: rect.bottom + 8,
-      left: rect.left,
-      width: rect.width,
-    })
+    setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
   }, [open, triggerRef])
+
+  // Put the dropdown in the browser top layer so it renders above view-transition pseudo-elements
+  React.useLayoutEffect(() => {
+    if (!open) return
+    const el = contentRef.current as (HTMLDivElement & { showPopover?: () => void }) | null
+    el?.showPopover?.()
+  }, [open])
 
   if (!open) return null
 
+  const query = normalize(search)
   const childArray = React.Children.toArray(children)
-  const search = childArray.filter(
+  const searchNode = childArray.filter(
     (c) => React.isValidElement(c) && c.type === SelectSearch,
   )
-  const items = childArray.filter(
-    (c) => !(React.isValidElement(c) && c.type === SelectSearch),
-  )
+  // Filter direct SelectItem children by search query; SelectGroup handles its own filtering
+  const items = childArray
+    .filter((c) => !(React.isValidElement(c) && c.type === SelectSearch))
+    .filter((c) => {
+      if (!query || !React.isValidElement(c)) return true
+      const item = c as SelectChild
+      if (item.type !== SelectItem) return true
+      return normalize(String(item.props.children ?? item.props.value ?? '')).includes(query)
+    })
 
   return ReactDOM.createPortal(
     <div
+      ref={contentRef}
       id={contentId}
       role="listbox"
       aria-labelledby={triggerId}
-      style={{ position: 'fixed', top: pos.top, left: pos.left, '--select-trigger-w': `${pos.width}px` } as React.CSSProperties}
+      // popover="manual" puts the element in the browser top layer (above view transitions)
+      {...({ popover: 'manual' } as Record<string, unknown>)}
+      style={
+        {
+          position: 'fixed',
+          top: pos.top,
+          right: 'auto',
+          bottom: 'auto',
+          left: pos.left,
+          margin: 0,
+          '--select-trigger-w': `${pos.width}px`,
+        } as React.CSSProperties
+      }
       className={cn(
         'z-50 min-w-[var(--select-trigger-w)] rounded-2xl border overflow-hidden border-slate-200 bg-white p-2 text-slate-800 shadow-md animate-[dropdown-in_150ms_ease-out]',
         className,
       )}
       {...props}
     >
-      {search}
+      {searchNode}
       <div className="max-h-72 overflow-y-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200">
         {items}
       </div>

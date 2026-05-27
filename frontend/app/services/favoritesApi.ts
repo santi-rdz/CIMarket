@@ -5,7 +5,9 @@ function token() {
 }
 
 export function checkFavorite(productId: string) {
-  return fetchApi<{ favorited: boolean }>(`/favorites/check/${productId}`, { token: token() })
+  return fetchApi<{ favorited: boolean }>(`/favorites/check/${productId}`, {
+    token: token(),
+  })
 }
 
 export function toggleFavorite(productId: string) {

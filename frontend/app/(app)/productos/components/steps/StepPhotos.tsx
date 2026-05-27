@@ -12,8 +12,16 @@ type Props = {
   onRemoveExisting?: (index: number) => void
 }
 
-export default function StepPhotos({ form, onNext, existingUrls, onRemoveExisting }: Props) {
-  const { register, formState: { errors } } = form
+export default function StepPhotos({
+  form,
+  onNext,
+  existingUrls,
+  onRemoveExisting,
+}: Props) {
+  const {
+    register,
+    formState: { errors },
+  } = form
 
   return (
     <>

@@ -1,7 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { HiChevronRight, HiOutlineEye, HiOutlineClock, HiOutlineHeart } from 'react-icons/hi2'
+import {
+  HiChevronRight,
+  HiOutlineEye,
+  HiOutlineClock,
+  HiOutlineHeart,
+} from 'react-icons/hi2'
 import { useProduct } from '@/app/hooks/useProduct'
 import { useMe } from '@/app/hooks/useMe'
 import { useProductsHref } from '@/app/hooks/useProductsHref'
@@ -14,7 +19,13 @@ import Modal from '@/app/login/components/Modal'
 import OwnerActions, { OwnerActionButtons } from './OwnerActions'
 import RelatedProducts from './RelatedProducts'
 
-export default function ProductDetailClient({ slug, initialProduct }: { slug: string; initialProduct?: ProductDetail }) {
+export default function ProductDetailClient({
+  slug,
+  initialProduct,
+}: {
+  slug: string
+  initialProduct?: ProductDetail
+}) {
   const { data: product, isLoading, error } = useProduct(slug, initialProduct)
   const { data: me } = useMe()
   const productsHref = useProductsHref()
@@ -46,7 +57,10 @@ export default function ProductDetailClient({ slug, initialProduct }: { slug: st
     return (
       <div className="mx-auto max-w-[1120px] px-6 py-20 text-center">
         <p className="txt-4 text-slate-400">No se encontró el producto</p>
-        <Link href={productsHref} className="mt-4 inline-block txt-5 font-semibold text-green-700 hover:underline">
+        <Link
+          href={productsHref}
+          className="mt-4 inline-block txt-5 font-semibold text-green-700 hover:underline"
+        >
           Volver a productos
         </Link>
       </div>
@@ -56,10 +70,17 @@ export default function ProductDetailClient({ slug, initialProduct }: { slug: st
   return (
     <div className="mx-auto max-w-[1120px] px-6 py-6">
       {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-1.5 txt-6 text-slate-400">
-        <Link href={productsHref} className="transition-colors hover:text-slate-600">Productos</Link>
+      <nav
+        aria-label="Breadcrumb"
+        className="mb-6 flex items-center gap-1.5 txt-6 text-slate-400"
+      >
+        <Link href={productsHref} className="transition-colors hover:text-slate-600">
+          Productos
+        </Link>
         <HiChevronRight className="size-3" />
-        <Link href={productsHref} className="transition-colors hover:text-slate-600">{product.category.name}</Link>
+        <Link href={productsHref} className="transition-colors hover:text-slate-600">
+          {product.category.name}
+        </Link>
         <HiChevronRight className="size-3" />
         <span className="text-slate-500 truncate max-w-48">{product.title}</span>
       </nav>
@@ -68,7 +89,11 @@ export default function ProductDetailClient({ slug, initialProduct }: { slug: st
       <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
         {/* Left — Images */}
         <div>
-          <ImageGallery images={product.images} title={product.title} productId={product.id} />
+          <ImageGallery
+            images={product.images}
+            title={product.title}
+            productId={product.id}
+          />
 
           {/* Stats — below images on desktop */}
           <div className="mt-6 flex items-center gap-6 txt-6 text-slate-400">
@@ -82,17 +107,22 @@ export default function ProductDetailClient({ slug, initialProduct }: { slug: st
             </span>
             <span className="flex items-center gap-1.5">
               <HiOutlineHeart className="size-3.5" />
-              {product._count.favorites} guardado{product._count.favorites !== 1 ? 's' : ''}
+              {product._count.favorites} guardado
+              {product._count.favorites !== 1 ? 's' : ''}
             </span>
           </div>
         </div>
 
         {/* Right — sticky info panel */}
-        <div className="lg:self-start lg:sticky lg:top-[calc(var(--header-h,57px)+16px)]">
+        <div className="lg:self-start lg:sticky lg:top-[calc(var(--header-h,57px)+16px)] animate-fade-in-up animate-duration-300">
           {isOwner ? (
             <Modal>
               <div className="rounded-2xl border border-slate-100 p-6 shadow-sm">
-                <ProductInfo product={product} isOwner ownerActions={<OwnerActionButtons />} />
+                <ProductInfo
+                  product={product}
+                  isOwner
+                  ownerActions={<OwnerActionButtons />}
+                />
                 <hr className="my-5 border-slate-100" />
                 <OwnerActions product={product} />
               </div>
@@ -100,7 +130,7 @@ export default function ProductDetailClient({ slug, initialProduct }: { slug: st
           ) : (
             <div className="rounded-2xl border border-slate-100 p-6 shadow-sm">
               <ProductInfo product={product} />
-              <SellerCard seller={product.user} productId={product.id} />
+              <SellerCard seller={product.user} productId={product.id} productStatus={product.status} />
             </div>
           )}
         </div>

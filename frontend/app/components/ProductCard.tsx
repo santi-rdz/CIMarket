@@ -14,9 +14,10 @@ const CONDITION_LABELS: Record<string, string> = {
 
 interface Props {
   product: Product
+  isOwn?: boolean
 }
 
-export default function ProductCard({ product }: Props) {
+export default function ProductCard({ product, isOwn }: Props) {
   const image = product.images[0]
   const campus = product.campuses[0]
   const conditionLabel = CONDITION_LABELS[product.condition] ?? product.condition
@@ -46,17 +47,38 @@ export default function ProductCard({ product }: Props) {
             <NoImagePlaceholder />
           )}
 
+          {/* Sold overlay */}
+          {product.status === 'VENDIDO' && (
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]" />
+          )}
+
           {/* Condition badge */}
           <span className="absolute bottom-2 left-2 rounded-md bg-black/40 px-2 py-1 txt-6 font-medium leading-none text-white/80 backdrop-blur-md sm:opacity-0 sm:transition-opacity sm:duration-200 sm:group-hover:opacity-100">
             {conditionLabel}
           </span>
 
-          {/* Favorite — visible on hover */}
-          <FavoriteButton
-            productId={product.id}
-            variant="card"
-            className="absolute right-2.5 top-2.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-          />
+          {/* Sold badge */}
+          {product.status === 'VENDIDO' && (
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white/95 px-3 py-1.5 txt-6 font-bold text-slate-700 shadow-sm tracking-wide uppercase">
+              Vendido
+            </span>
+          )}
+
+          {/* Own badge */}
+          {isOwn && (
+            <span className="absolute left-2 top-2 rounded-lg bg-emerald-500/90 px-2 py-1 txt-6 font-medium leading-none text-white backdrop-blur-md">
+              Mi publicación
+            </span>
+          )}
+
+          {/* Favorite — visible on hover (not for own products) */}
+          {!isOwn && product.status !== 'VENDIDO' && (
+            <FavoriteButton
+              productId={product.id}
+              variant="card"
+              className="absolute right-2.5 top-2.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            />
+          )}
         </figure>
       </ViewTransition>
 
@@ -67,11 +89,11 @@ export default function ProductCard({ product }: Props) {
             {product.title}
           </h3>
         </div>
-        <p className="txt-base font-bold text-slate-900">
-          {formatPrice(product.price)}
-        </p>
+        <p className="txt-base font-bold text-slate-900">{formatPrice(product.price)}</p>
         <div className="flex items-center justify-between gap-2 pt-0.5">
-          <span className="txt-6 text-slate-400 truncate max-w-[45%]">{product.category.name}</span>
+          <span className="txt-6 text-slate-400 truncate max-w-[45%]">
+            {product.category.name}
+          </span>
           {campus && (
             <span className="flex items-center gap-1 txt-6 text-slate-400 max-w-[50%]">
               <HiMapPin className="size-2.5 shrink-0" />

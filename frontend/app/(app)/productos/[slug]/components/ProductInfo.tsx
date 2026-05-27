@@ -34,7 +34,16 @@ export default function ProductInfo({ product, isOwner, ownerActions }: Props) {
     <div>
       {/* Price — hero element */}
       <div className="flex items-start justify-between gap-3">
-        <p className={cn('txt-2 font-bold tracking-tight', product.status === PRODUCT_STATUS.VENDIDO ? 'text-slate-400 line-through' : 'text-slate-900')}>{formatPrice(product.price)}</p>
+        <p
+          className={cn(
+            'txt-2 font-bold tracking-tight',
+            product.status === PRODUCT_STATUS.VENDIDO
+              ? 'text-slate-400 line-through'
+              : 'text-slate-900',
+          )}
+        >
+          {formatPrice(product.price)}
+        </p>
         <div className="flex items-center gap-1.5 pt-1">
           {ownerActions}
           {!isOwner && <FavoriteButton productId={product.id} variant="detail" />}
@@ -44,7 +53,13 @@ export default function ProductInfo({ product, isOwner, ownerActions }: Props) {
               const url = window.location.href
               const isMobile = navigator.maxTouchPoints > 0
               if (isMobile && navigator.share) {
-                try { await navigator.share({ title: product.title, text: `${product.title} — ${formatPrice(product.price)}`, url }) } catch {}
+                try {
+                  await navigator.share({
+                    title: product.title,
+                    text: `${product.title} — ${formatPrice(product.price)}`,
+                    url,
+                  })
+                } catch {}
               } else {
                 await navigator.clipboard.writeText(url)
                 toast.success('Enlace copiado')
@@ -59,21 +74,23 @@ export default function ProductInfo({ product, isOwner, ownerActions }: Props) {
 
       {/* Title + status */}
       <div className="mt-2 flex items-start gap-2">
-        <h1 className="txt-4 font-semibold text-slate-900 leading-snug line-clamp-2">{product.title}</h1>
-        <span className={cn(
-          'mt-0.5 shrink-0 rounded-md px-2 py-1 txt-6 font-medium',
-          product.status === PRODUCT_STATUS.DISPONIBLE && 'bg-green-50 text-green-700',
-          product.status === PRODUCT_STATUS.RESERVADO && 'bg-amber-50 text-amber-700',
-          product.status === PRODUCT_STATUS.VENDIDO && 'bg-slate-100 text-slate-500',
-        )}>
+        <h1 className="txt-4 font-semibold text-slate-900 leading-snug line-clamp-2">
+          {product.title}
+        </h1>
+        <span
+          className={cn(
+            'mt-0.5 shrink-0 rounded-md px-2 py-1 txt-6 font-medium',
+            product.status === PRODUCT_STATUS.DISPONIBLE && 'bg-green-50 text-green-700',
+            product.status === PRODUCT_STATUS.RESERVADO && 'bg-amber-50 text-amber-700',
+            product.status === PRODUCT_STATUS.VENDIDO && 'bg-slate-100 text-slate-500',
+          )}
+        >
           {STATUS_LABELS[product.status] ?? product.status}
         </span>
       </div>
 
       {/* Description */}
-      {product.description && (
-        <ExpandableText text={product.description} />
-      )}
+      {product.description && <ExpandableText text={product.description} />}
 
       {/* Details */}
       <div className="mt-5 space-y-3">
@@ -108,7 +125,9 @@ function ExpandableText({ text }: { text: string }) {
 
   return (
     <div className="mt-3">
-      <p className={`txt-5 leading-relaxed text-slate-500 ${!expanded && needsClamp ? 'line-clamp-4' : ''}`}>
+      <p
+        className={`txt-5 leading-relaxed text-slate-500 ${!expanded && needsClamp ? 'line-clamp-4' : ''}`}
+      >
         {text}
       </p>
       {needsClamp && (

@@ -24,7 +24,10 @@ const STEP_FIELDS: (keyof ProductFormInput)[][] = [
 const CREATE_STEPS = [
   { title: 'Publica tu artículo', description: 'Fotos y descripción' },
   { title: 'Detalles del producto', description: 'Precio y categoría' },
-  { title: '¡Producto publicado!', description: 'Tu artículo ya está visible para toda la comunidad UABC.' },
+  {
+    title: '¡Producto publicado!',
+    description: 'Tu artículo ya está visible para toda la comunidad UABC.',
+  },
 ]
 
 const EDIT_STEPS = [
@@ -47,7 +50,9 @@ export function NewProductForm({ onCloseModal, product }: Props) {
   const [removedImageIds, setRemovedImageIds] = useState<number[]>([])
 
   const existingUrls = isEditMode
-    ? product.images.filter((img) => !removedImageIds.includes(img.id)).map((img) => img.url)
+    ? product.images
+        .filter((img) => !removedImageIds.includes(img.id))
+        .map((img) => img.url)
     : []
 
   const form = useForm<ProductFormInput>({
@@ -100,8 +105,20 @@ export function NewProductForm({ onCloseModal, product }: Props) {
       })
     } else {
       create(
-        { title: data.title, description: data.description, price: data.price, condition: data.condition, categoryId: data.categoryId, campusIds: data.campusIds },
-        { onSuccess: (p) => { setCreatedSlug(p.slug); setStep(2) } },
+        {
+          title: data.title,
+          description: data.description,
+          price: data.price,
+          condition: data.condition,
+          categoryId: data.categoryId,
+          campusIds: data.campusIds,
+        },
+        {
+          onSuccess: (p) => {
+            setCreatedSlug(p.slug)
+            setStep(2)
+          },
+        },
       )
     }
   }
@@ -138,10 +155,16 @@ export function NewProductForm({ onCloseModal, product }: Props) {
             form={form}
             onNext={handleNext}
             existingUrls={isEditMode ? existingUrls : undefined}
-            onRemoveExisting={isEditMode ? (i) => {
-              const img = product.images.filter((img) => !removedImageIds.includes(img.id))[i]
-              if (img) setRemovedImageIds((prev) => [...prev, img.id])
-            } : undefined}
+            onRemoveExisting={
+              isEditMode
+                ? (i) => {
+                    const img = product.images.filter(
+                      (img) => !removedImageIds.includes(img.id),
+                    )[i]
+                    if (img) setRemovedImageIds((prev) => [...prev, img.id])
+                  }
+                : undefined
+            }
           />
         )}
 
@@ -154,7 +177,9 @@ export function NewProductForm({ onCloseModal, product }: Props) {
           />
         )}
 
-        {!isEditMode && step === 2 && <StepSuccess productSlug={createdSlug} onReset={reset} />}
+        {!isEditMode && step === 2 && (
+          <StepSuccess productSlug={createdSlug} onReset={reset} onClose={onCloseModal} />
+        )}
       </div>
 
       {step < 2 && <StepIndicator current={step} total={2} />}

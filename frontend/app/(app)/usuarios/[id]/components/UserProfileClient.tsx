@@ -1,25 +1,38 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { HiOutlineTag } from 'react-icons/hi2'
 import { HiStar, HiOutlineMapPin } from 'react-icons/hi2'
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi'
 import { useUserProfile, useUserProducts, useUserReviews } from '@/app/hooks/useProfile'
 import ProductCard from '@/app/components/ProductCard'
+import { ReviewCard } from '@/app/components/ReviewCard'
 import { cn } from '@/app/lib/utils'
 
 type Tab = 'publicaciones' | 'resenas'
 
 export default function UserProfileClient({ id }: { id: string }) {
   const { data: profile, isLoading } = useUserProfile(id)
-  const [activeTab, setActiveTab] = useState<Tab>('publicaciones')
+  const searchParams = useSearchParams()
+  const [activeTab, setActiveTab] = useState<Tab>(
+    searchParams.get('tab') === 'resenas' ? 'resenas' : 'publicaciones',
+  )
+
+  useEffect(() => {
+    if (searchParams.get('tab') === 'resenas') setActiveTab('resenas')
+  }, [searchParams])
 
   if (isLoading) return <PageSkeleton />
   if (!profile) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16 text-center">
         <p className="txt-3 text-slate-500">Usuario no encontrado</p>
-        <Link href="/productos" className="mt-4 inline-block txt-5 font-semibold text-green-700 hover:underline">
+        <Link
+          href="/productos"
+          className="mt-4 inline-block txt-5 font-semibold text-green-700 hover:underline"
+        >
           Volver a productos
         </Link>
       </div>
@@ -64,7 +77,10 @@ export default function UserProfileClient({ id }: { id: string }) {
           )}
           <p className="txt-6 text-slate-400">Miembro desde {memberSince}</p>
         </div>
-        <RatingBadge average={profile.rating?.average ?? 0} count={profile.rating?.count ?? 0} />
+        <RatingBadge
+          average={profile.rating?.average ?? 0}
+          count={profile.rating?.count ?? 0}
+        />
       </div>
 
       {/* Stats */}
@@ -75,18 +91,26 @@ export default function UserProfileClient({ id }: { id: string }) {
 
       {/* Tabs */}
       <div className="mt-8 flex gap-1 border-b border-slate-100">
-        <TabButton active={activeTab === 'publicaciones'} onClick={() => setActiveTab('publicaciones')}>
+        <TabButton
+          active={activeTab === 'publicaciones'}
+          onClick={() => setActiveTab('publicaciones')}
+        >
           Publicaciones
         </TabButton>
-        <TabButton active={activeTab === 'resenas'} onClick={() => setActiveTab('resenas')}>
+        <TabButton
+          active={activeTab === 'resenas'}
+          onClick={() => setActiveTab('resenas')}
+        >
           Reseñas
         </TabButton>
       </div>
 
       <div className="mt-6">
-        {activeTab === 'publicaciones'
-          ? <ProductsTab userId={id} />
-          : <ReviewsTab userId={id} />}
+        {activeTab === 'publicaciones' ? (
+          <ProductsTab userId={id} />
+        ) : (
+          <ReviewsTab userId={id} />
+        )}
       </div>
     </div>
   )
@@ -100,7 +124,9 @@ function RatingBadge({ average, count }: { average: number; count: number }) {
         <HiStar className="size-5 text-amber-400" />
         <span className="txt-3 font-bold text-slate-900">{average.toFixed(1)}</span>
       </div>
-      <span className="txt-6 text-slate-400">{count} reseña{count !== 1 ? 's' : ''}</span>
+      <span className="txt-6 text-slate-400">
+        {count} reseña{count !== 1 ? 's' : ''}
+      </span>
     </div>
   )
 }
@@ -114,7 +140,15 @@ function Stat({ label, value }: { label: string; value: number }) {
   )
 }
 
-function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
   return (
     <button
       type="button"
@@ -215,48 +249,7 @@ function ReviewsTab({ userId }: { userId: string }) {
   return (
     <div className="flex flex-col gap-4">
       {reviews.map((review) => (
-        <div key={review.id} className="rounded-2xl border border-slate-100 p-4">
-          <div className="flex items-start gap-3">
-            {review.reviewer.photoUrl ? (
-              <img
-                src={review.reviewer.photoUrl}
-                alt={review.reviewer.name}
-                referrerPolicy="no-referrer"
-                className="size-9 rounded-full object-cover"
-              />
-            ) : (
-              <span className="inline-flex size-9 items-center justify-center rounded-full bg-slate-200 txt-5 font-bold text-slate-500">
-                {review.reviewer.name[0]?.toUpperCase()}
-              </span>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
-                <p className="txt-5 font-semibold text-slate-900">{review.reviewer.name}</p>
-                <time className="txt-6 text-slate-400">
-                  {new Date(review.createdAt).toLocaleDateString('es-MX', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </time>
-              </div>
-              <div className="mt-0.5 flex gap-0.5">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <HiStar
-                    key={n}
-                    className={cn(
-                      'size-3.5',
-                      n <= Math.round(Number(review.rating)) ? 'text-amber-400' : 'text-slate-200',
-                    )}
-                  />
-                ))}
-              </div>
-              {review.comment && (
-                <p className="mt-2 txt-5 text-slate-600">{review.comment}</p>
-              )}
-            </div>
-          </div>
-        </div>
+        <ReviewCard key={review.id} review={review} />
       ))}
     </div>
   )

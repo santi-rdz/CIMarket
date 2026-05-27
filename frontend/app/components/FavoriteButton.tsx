@@ -12,7 +12,11 @@ interface Props {
   className?: string
 }
 
-export default function FavoriteButton({ productId, variant = 'card', className }: Props) {
+export default function FavoriteButton({
+  productId,
+  variant = 'card',
+  className,
+}: Props) {
   const { favorited, isPending, toggle, isLoggedIn } = useFavorite(productId)
 
   if (!isLoggedIn) return null
@@ -21,7 +25,10 @@ export default function FavoriteButton({ productId, variant = 'card', className 
     return (
       <button
         type="button"
-        onClick={(e) => { e.preventDefault(); toggle() }}
+        onClick={(e) => {
+          e.preventDefault()
+          toggle()
+        }}
         disabled={isPending}
         aria-label={favorited ? 'Quitar de favoritos' : 'Agregar a favoritos'}
         className={cn(
@@ -29,9 +36,11 @@ export default function FavoriteButton({ productId, variant = 'card', className 
           className,
         )}
       >
-        {favorited
-          ? <HiHeart className="size-3.5 text-red-500" />
-          : <HiOutlineHeart className="size-3 text-slate-900" />}
+        {favorited ? (
+          <HiHeart className="size-3.5 text-red-500" />
+        ) : (
+          <HiOutlineHeart className="size-3 text-slate-900" />
+        )}
       </button>
     )
   }
@@ -50,9 +59,11 @@ export default function FavoriteButton({ productId, variant = 'card', className 
         className,
       )}
     >
-      {favorited
-        ? <HiHeart className="size-[18px]" />
-        : <HiOutlineHeart className="size-[18px]" />}
+      {favorited ? (
+        <HiHeart className="size-[18px]" />
+      ) : (
+        <HiOutlineHeart className="size-[18px]" />
+      )}
     </button>
   )
 }

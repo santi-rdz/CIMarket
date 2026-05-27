@@ -2,11 +2,7 @@ import { cn } from '@/app/lib/utils'
 
 type DropdownPanelProps = React.ComponentPropsWithoutRef<'div'>
 
-export default function DropdownPanel({
-  className,
-  children,
-  ...props
-}: DropdownPanelProps) {
+export default function DropdownPanel({ className, children, ...props }: DropdownPanelProps) {
   return (
     <div
       className={cn(

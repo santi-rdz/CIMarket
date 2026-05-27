@@ -12,7 +12,20 @@ async function getProduct(slug: string): Promise<ProductDetail | null> {
   }
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+function serializeJsonLd(data: unknown) {
+  return JSON.stringify(data)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029')
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
   const { slug } = await params
   const product = await getProduct(slug)
 
@@ -21,7 +34,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const image = product.images[0]?.url
-  const price = Number(product.price).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })
+  const price = Number(product.price).toLocaleString('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+  })
 
   return {
     title: product.title,
@@ -38,7 +54,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ProductDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
   const { slug } = await params
   const product = await getProduct(slug)
 
@@ -62,13 +82,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         category: product.category.name,
       }
     : null
+  const jsonLdMarkup = jsonLd ? serializeJsonLd(jsonLd) : null
 
   return (
     <>
-      {jsonLd && (
+      {jsonLdMarkup && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdMarkup }}
         />
       )}
       <ProductDetailClient slug={slug} initialProduct={product ?? undefined} />

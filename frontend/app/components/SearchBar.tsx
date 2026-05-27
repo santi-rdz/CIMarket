@@ -2,13 +2,17 @@
 
 import React, { Suspense } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import { HiMagnifyingGlass, HiOutlineMapPin, HiOutlineClock, HiXMark } from 'react-icons/hi2'
+import {
+  HiMagnifyingGlass,
+  HiOutlineClock,
+  HiXMark,
+} from 'react-icons/hi2'
 import { cn } from '@/app/lib/utils'
-import { useDefaultCampuses } from '@/app/hooks/useDefaultCampuses'
-import { useCampuses } from '@/app/hooks/useCampuses'
 import { paramsToFilters, filtersToParams } from '@/app/types/filters'
+import CampusSelect from './CampusSelect'
+import { useDefaultCampuses } from '@/app/hooks/useDefaultCampuses'
 
-// ─── Recent searches localStorage helpers ─────────────────────────────────────
+// ─── Storage helpers ──────────────────────────────────────────────────────────
 
 const RECENT_KEY = 'cm_recent_searches'
 const MAX_RECENT = 5
@@ -50,11 +54,22 @@ function SearchBarInner({ compact }: { compact: boolean }) {
   const searchParams = useSearchParams()
 
   const filters = paramsToFilters(searchParams)
+  const defaultCampuses = useDefaultCampuses()
   const [query, setQuery] = React.useState(filters.search ?? '')
   const [open, setOpen] = React.useState(false)
   const [recent, setRecent] = React.useState<string[]>([])
+  const [campusIds, setCampusIds] = React.useState<number[]>(filters.campusIds)
   const debounceRef = React.useRef<ReturnType<typeof setTimeout>>(null)
   const containerRef = React.useRef<HTMLDivElement>(null)
+
+  // Keep campus state in sync: prefer URL params, fall back to preferences
+  React.useEffect(() => {
+    if (filters.campusIds.length > 0) {
+      setCampusIds(filters.campusIds)
+    } else if (defaultCampuses.length > 0) {
+      setCampusIds(defaultCampuses)
+    }
+  }, [searchParams, defaultCampuses])
 
   // Sync input when URL changes externally
   React.useEffect(() => {
@@ -77,28 +92,11 @@ function SearchBarInner({ compact }: { compact: boolean }) {
     return () => document.removeEventListener('pointerdown', handlePointerDown)
   }, [])
 
-  // Campus label: read from URL, fallback to defaults
-  const defaults = useDefaultCampuses()
-  const { data: allCampuses = [] } = useCampuses()
-  const activeCampusIds = filters.campusIds.length > 0 ? filters.campusIds : defaults
-
-  const campusLabel = React.useMemo(() => {
-    if (activeCampusIds.length === 0) return 'Todos los campus'
-    if (activeCampusIds.length === allCampuses.length) return 'Todos los campus'
-    const names = activeCampusIds
-      .map((id) => allCampuses.find((c) => c.id === id)?.name)
-      .filter(Boolean)
-    if (names.length === 0) return 'Todos los campus'
-    if (names.length === 1) return names[0]!
-    if (names.length === 2) return names.join(' y ')
-    return `${names[0]}, ${names[1]} +${names.length - 2}`
-  }, [activeCampusIds, allCampuses])
-
   const filtersRef = React.useRef(filters)
   filtersRef.current = filters
 
   const navigate = React.useCallback(
-    (overrides: { search?: string }) => {
+    (overrides: Partial<typeof filters>) => {
       const next = { ...filtersRef.current, ...overrides }
       const qs = filtersToParams(next).toString()
       const target = `/productos${qs ? `?${qs}` : ''}`
@@ -110,6 +108,12 @@ function SearchBarInner({ compact }: { compact: boolean }) {
     },
     [pathname, router],
   )
+
+  function handleCampusChange(value: string[]) {
+    const ids = value.map(Number).filter(Boolean)
+    setCampusIds(ids)
+    navigate({ campusIds: ids })
+  }
 
   function commit(term: string) {
     const trimmed = term.trim()
@@ -144,7 +148,6 @@ function SearchBarInner({ compact }: { compact: boolean }) {
     }
   }, [])
 
-  // Only show dropdown if there's something to show
   const showSuggestions = open && recent.length > 0
 
   return (
@@ -153,13 +156,16 @@ function SearchBarInner({ compact }: { compact: boolean }) {
         onSubmit={handleSubmit}
         className="flex items-center rounded-full border border-slate-200 bg-white transition-shadow focus-within:shadow-md focus-within:border-slate-300"
       >
-        {/* Campus indicator */}
-        <div className={cn(
-          'flex items-center gap-1.5 pl-4 pr-3 border-r border-slate-200 shrink-0 transition-all duration-300',
-          compact ? 'py-1.5' : 'py-2.5',
-        )}>
-          <HiOutlineMapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-          <span className="txt-6 font-medium text-slate-500 truncate max-w-32">{campusLabel}</span>
+        {/* Campus scope selector */}
+        <div className={cn('border-r border-slate-200 shrink-0', compact ? 'py-0.5' : 'py-1')}>
+          <CampusSelect
+            value={campusIds.map(String)}
+            onValueChange={handleCampusChange}
+            variant="ghost"
+            size="sm"
+            rounded="full"
+            triggerClassName="border-0 shadow-none px-4 txt-6 text-slate-500 font-medium max-w-[180px]"
+          />
         </div>
 
         {/* Search input */}
@@ -191,7 +197,10 @@ function SearchBarInner({ compact }: { compact: boolean }) {
                 key={term}
                 type="button"
                 onPointerDown={(e) => e.preventDefault()}
-                onClick={() => { setQuery(term); commit(term) }}
+                onClick={() => {
+                  setQuery(term)
+                  commit(term)
+                }}
                 className="group flex w-full items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-slate-50 transition-colors"
               >
                 <span className="flex items-center gap-2.5 min-w-0">

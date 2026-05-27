@@ -1,6 +1,6 @@
 import { cn } from '@/app/lib/utils'
 import { cva } from 'class-variance-authority'
-import { InputHTMLAttributes, TextareaHTMLAttributes } from 'react'
+import React, { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes } from 'react'
 
 type BaseProps = {
   variant?: 'default' | 'outline'
@@ -41,28 +41,21 @@ const inputVariants = cva(
   },
 )
 
-export default function Input({
-  variant,
-  size,
-  as = 'input',
-  className,
-  hasError = false,
-  ...props
-}: Props) {
+const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, Props>(function Input(
+  { variant, size, as = 'input', className, hasError = false, ...props },
+  ref,
+) {
   const inputClasses = cn(
-    inputVariants({
-      variant,
-      size,
-      className,
-    }),
+    inputVariants({ variant, size, className }),
     hasError
       ? 'focus-visible:outline-red-500 focus-visible:outline-offset-2'
-      : 'focus-visible:outline-green-800 focus-visible:-outline-offset-1 ',
+      : 'focus-visible:outline-green-800 focus-visible:-outline-offset-1',
   )
 
   if (as === 'textarea') {
     return (
       <textarea
+        ref={ref as React.Ref<HTMLTextAreaElement>}
         className={inputClasses}
         {...(props as TextareaHTMLAttributes<HTMLTextAreaElement>)}
       />
@@ -71,8 +64,11 @@ export default function Input({
 
   return (
     <input
+      ref={ref as React.Ref<HTMLInputElement>}
       className={inputClasses}
       {...(props as InputHTMLAttributes<HTMLInputElement>)}
     />
   )
-}
+})
+
+export default Input
