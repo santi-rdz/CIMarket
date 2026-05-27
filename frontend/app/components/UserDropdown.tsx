@@ -84,6 +84,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
               <Link
                 key={href}
                 href={href}
+                onClick={close}
                 className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
                 <Icon className="h-4.5 w-4.5 shrink-0 text-slate-400" />

@@ -13,7 +13,11 @@ import { cn } from '@/app/lib/utils'
 import { useMe } from '@/app/hooks/useMe'
 import { useUserProducts, useUserFavorites, useUserReviews } from '@/app/hooks/useProfile'
 
-export default function ProfileSidebar({ variant = 'sidebar' }: { variant?: 'sidebar' | 'tabs' }) {
+export default function ProfileSidebar({
+  variant = 'sidebar',
+}: {
+  variant?: 'sidebar' | 'tabs'
+}) {
   const pathname = usePathname()
   const { data: me } = useMe()
 
@@ -55,10 +59,12 @@ export default function ProfileSidebar({ variant = 'sidebar' }: { variant?: 'sid
               <Icon className="h-3.5 w-3.5 shrink-0" />
               <span>{label}</span>
               {count !== undefined && count > 0 && (
-                <span className={cn(
-                  'txt-6 font-semibold tabular-nums',
-                  active ? 'text-green-600' : 'text-slate-400',
-                )}>
+                <span
+                  className={cn(
+                    'txt-6 font-semibold tabular-nums',
+                    active ? 'text-green-600' : 'text-slate-400',
+                  )}
+                >
                   {count}
                 </span>
               )}
@@ -88,10 +94,12 @@ export default function ProfileSidebar({ variant = 'sidebar' }: { variant?: 'sid
             <Icon className="h-4.5 w-4.5 shrink-0" />
             <span className="flex-1">{label}</span>
             {count !== undefined && count > 0 && (
-              <span className={cn(
-                'txt-6 font-semibold tabular-nums',
-                active ? 'text-slate-500' : 'text-slate-400',
-              )}>
+              <span
+                className={cn(
+                  'txt-6 font-semibold tabular-nums',
+                  active ? 'text-slate-500' : 'text-slate-400',
+                )}
+              >
                 {count}
               </span>
             )}

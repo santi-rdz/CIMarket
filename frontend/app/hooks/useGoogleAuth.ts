@@ -9,7 +9,7 @@ type Options = {
 }
 
 export function useGoogleAuth({ onSuccess }: Options = {}) {
-  const { login, loading, error, campusSetup, onCampusDone } = useLogin({ onSuccess })
+  const { login, loading, error } = useLogin({ onSuccess })
   const buttonContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -30,11 +30,14 @@ export function useGoogleAuth({ onSuccess }: Options = {}) {
       init()
     } else {
       const interval = setInterval(() => {
-        if (window.google) { init(); clearInterval(interval) }
+        if (window.google) {
+          init()
+          clearInterval(interval)
+        }
       }, 100)
       return () => clearInterval(interval)
     }
   }, [login])
 
-  return { buttonContainerRef, loading, error, campusSetup, onCampusDone }
+  return { buttonContainerRef, loading, error }
 }

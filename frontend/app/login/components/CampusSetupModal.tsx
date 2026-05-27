@@ -1,67 +1,84 @@
 'use client'
 
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
 import { useCampuses } from '@/app/hooks/useCampuses'
-import { updateUserProfile } from '@/app/services/profileApi'
+import { useSetupCampus } from '@/app/hooks/useProfile'
 import { Button } from '@/app/components/ui/button'
-import { HiOutlineAcademicCap } from 'react-icons/hi2'
+import { HiCheck } from 'react-icons/hi2'
 import { cn } from '@/app/lib/utils'
-import { createPortal } from 'react-dom'
 
 interface Props {
   userId: string
   onCloseModal?: () => void
+  onSkip?: () => void
 }
 
-export default function CampusSetupModal({ userId, onCloseModal }: Props) {
+export default function CampusSetupModal({ userId, onCloseModal, onSkip }: Props) {
   const { data: campuses = [] } = useCampuses()
-  const [selected, setSelected] = useState<number | null>(null)
+  const [selected, setSelected] = useState<number[]>([])
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: (campusId: number) => updateUserProfile(userId, { campusId }),
-    onSuccess: () => onCloseModal?.(),
-  })
+  const { mutate, isPending } = useSetupCampus(userId, () => onCloseModal?.())
+
+  function toggle(id: number) {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    )
+  }
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full">
-      <div className="flex size-12 items-center justify-center rounded-full bg-green-50">
-        <HiOutlineAcademicCap className="size-6 text-green-700" />
-      </div>
-
-      <div className="text-center space-y-1">
-        <h2 className="txt-3 font-bold text-slate-900">Selecciona tu campus</h2>
-        <p className="txt-5 text-slate-400">
-          Esto nos ayuda a mostrarte productos relevantes cerca de ti.
+    <div className="flex h-full w-full flex-col items-center gap-5">
+      <header className="w-full shrink-0 space-y-1 text-center">
+        <h2 className="text-xl font-bold text-slate-900">¿En qué campus estás?</h2>
+        <p className="text-sm text-slate-400">
+          Puedes elegir uno o varios para ver productos cercanos.
         </p>
+      </header>
+
+      <div className={cn(
+        'flex max-w-80 w-full flex-col gap-2 overflow-y-auto max-h-[380px] p-0.5',
+        '[&::-webkit-scrollbar]:w-1.5',
+        '[&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent',
+        '[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200',
+      )}>
+        {campuses.map((campus) => {
+          const isSelected = selected.includes(campus.id)
+          return (
+            <button
+              key={campus.id}
+              type="button"
+              onClick={() => toggle(campus.id)}
+              className={cn(
+                'flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium text-left transition-colors',
+                isSelected
+                  ? 'bg-green-50 text-green-800 ring-1 ring-green-700'
+                  : 'bg-slate-50 text-slate-700 hover:bg-slate-100',
+              )}
+            >
+              {campus.name}
+              {isSelected && <HiCheck className="size-4 shrink-0" />}
+            </button>
+          )
+        })}
       </div>
 
-      <div className="flex flex-col gap-2 w-full max-h-60 overflow-y-auto">
-        {campuses.map((campus) => (
+      <div className="flex w-80 shrink-0 flex-col gap-2">
+        <Button
+          disabled={selected.length === 0}
+          isLoading={isPending}
+          onClick={() => mutate(selected)}
+        >
+          Continuar
+        </Button>
+        {onSkip && (
           <button
-            key={campus.id}
             type="button"
-            onClick={() => setSelected(campus.id)}
-            className={cn(
-              'rounded-xl px-4 py-3 txt-5 font-medium text-left transition-colors',
-              selected === campus.id
-                ? 'bg-green-50 text-green-800 ring-1 ring-green-700'
-                : 'bg-slate-50 text-slate-700 hover:bg-slate-100',
-            )}
+            onClick={onSkip}
+            className="txt-6 text-slate-400 hover:text-slate-600 transition-colors py-1"
           >
-            {campus.name}
+            Omitir por ahora
           </button>
-        ))}
+        )}
       </div>
-
-      <Button
-        className="w-full"
-        disabled={!selected}
-        isLoading={isPending}
-        onClick={() => selected && mutate(selected)}
-      >
-        Continuar
-      </Button>
     </div>
   )
 }

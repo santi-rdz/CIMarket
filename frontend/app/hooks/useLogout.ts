@@ -9,6 +9,7 @@ export function useLogout() {
 
   return () => {
     localStorage.removeItem('token')
+    window.dispatchEvent(new Event('token-change'))
     queryClient.removeQueries({ queryKey: ['me'] })
     router.push('/login')
   }

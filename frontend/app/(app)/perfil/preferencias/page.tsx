@@ -40,37 +40,41 @@ export default function PreferenciasPage() {
           </p>
         </div>
 
-        <CampusSelect
-          value={selectedIds}
-          onValueChange={handleCampusChange}
-          placeholder="Seleccionar campus..."
-          variant="outline"
-        />
+        <div className="rounded-2xl border border-slate-100 px-4 py-4 space-y-3">
+          <CampusSelect
+            value={selectedIds}
+            onValueChange={handleCampusChange}
+            placeholder="Agregar campus..."
+            variant="outline"
+          />
 
-        {selectedIds.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {selectedIds.map((id) => {
-              const campus = campuses.find((c) => String(c.id) === id)
-              if (!campus) return null
-              return (
-                <span
-                  key={id}
-                  className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 txt-6 font-medium leading-none text-green-800"
-                >
-                  {campus.name}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(id)}
-                    disabled={isPending}
-                    className="rounded-full p-0.5 hover:bg-green-100 disabled:opacity-50"
+          {selectedIds.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {selectedIds.map((id) => {
+                const campus = campuses.find((c) => String(c.id) === id)
+                if (!campus) return null
+                return (
+                  <span
+                    key={id}
+                    className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 txt-6 font-medium leading-none text-slate-700"
                   >
-                    <HiX className="h-3 w-3" />
-                  </button>
-                </span>
-              )
-            })}
-          </div>
-        )}
+                    {campus.name}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(id)}
+                      disabled={isPending}
+                      className="rounded-full p-0.5 hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                    >
+                      <HiX className="h-3 w-3" />
+                    </button>
+                  </span>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="txt-6 text-slate-400">Sin campus seleccionados — verás todos los productos.</p>
+          )}
+        </div>
       </section>
 
       {/* Notificaciones */}

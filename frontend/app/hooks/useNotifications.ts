@@ -1,14 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import {
   getNotifications,
   markNotificationRead,
   markAllNotificationsRead,
 } from '@/app/services/notificationApi'
-import { useSocket } from '@/app/hooks/useSocket'
 import type { AppNotification } from '@/app/types/notification'
 
 export function useNotifications() {
@@ -21,48 +18,6 @@ export function useNotifications() {
     enabled: !!token,
     staleTime: 1000 * 60,
   })
-
-  const socket = useSocket()
-
-  // Listen for real-time notification events
-  useEffect(() => {
-    if (!token || !socket) return
-
-    const handleNotification = (notif: AppNotification) => {
-      // Prepend to cache
-      queryClient.setQueryData<{ notifications: AppNotification[]; unreadCount: number }>(
-        ['notifications'],
-        (prev) => {
-          if (!prev) return { notifications: [notif], unreadCount: 1 }
-          return {
-            notifications: [notif, ...prev.notifications],
-            unreadCount: prev.unreadCount + 1,
-          }
-        },
-      )
-
-      // Refresh conversation list so unread counts and last message update
-      if (notif.type === 'MESSAGE') {
-        queryClient.invalidateQueries({ queryKey: ['conversations'] })
-      }
-
-      // Show toast
-      toast(notif.title, {
-        description: notif.body,
-        action: {
-          label: 'Ver',
-          onClick: () => {
-            window.location.href = notif.url
-          },
-        },
-      })
-    }
-
-    socket.on('notification', handleNotification)
-    return () => {
-      socket.off('notification', handleNotification)
-    }
-  }, [token, socket, queryClient])
 
   const markRead = useMutation({
     mutationFn: (id: number) => markNotificationRead(id, token!),

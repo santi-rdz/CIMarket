@@ -150,7 +150,7 @@ Modal.Content = function ModalContent({
     <div
       role="dialog"
       onClick={close}
-      className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4 max-sm:place-items-end max-sm:p-0 animate-[fade-in_200ms_ease-out]"
+      className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4 max-sm:place-items-end max-sm:p-0 animate-blurred-fade-in animate-duration-300"
     >
       <div
         onClick={(e) => e.stopPropagation()}

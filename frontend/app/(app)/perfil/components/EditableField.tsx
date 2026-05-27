@@ -25,7 +25,10 @@ export default function EditableField({
   const [saving, setSaving] = useState(false)
 
   async function handleSave() {
-    if (draft.trim() === value) { setEditing(false); return }
+    if (draft.trim() === value) {
+      setEditing(false)
+      return
+    }
     setSaving(true)
     try {
       await onSave?.(draft.trim())
@@ -45,7 +48,9 @@ export default function EditableField({
             {editing ? (
               <span className="flex flex-col gap-1">
                 <span>Editar {label.toLowerCase()}</span>
-                {hint && <span className="text-xs font-normal text-slate-400">{hint}</span>}
+                {hint && (
+                  <span className="text-xs font-normal text-slate-400">{hint}</span>
+                )}
               </span>
             ) : (
               label

@@ -2,12 +2,9 @@
 
 import { FcGoogle } from 'react-icons/fc'
 import { useGoogleAuth } from '@/app/hooks/useGoogleAuth'
-import Modal from './Modal'
-import CampusSetupModal from './CampusSetupModal'
 
 export default function LoginButton() {
-  const { buttonContainerRef, loading, error, campusSetup, onCampusDone } =
-    useGoogleAuth()
+  const { buttonContainerRef, loading, error } = useGoogleAuth()
 
   return (
     <div className="space-y-2">
@@ -23,15 +20,6 @@ export default function LoginButton() {
         <div ref={buttonContainerRef} className="absolute inset-0 z-20 opacity-[0.01]" />
       </div>
       {error && <p className="text-red-600 txt-6 text-center font-medium">{error}</p>}
-
-      {campusSetup && (
-        <Modal>
-          <Modal.Auto name="campus-setup" />
-          <Modal.Content width="lg" height="auto">
-            <CampusSetupModal userId={campusSetup.userId} onCloseModal={onCampusDone} />
-          </Modal.Content>
-        </Modal>
-      )}
     </div>
   )
 }

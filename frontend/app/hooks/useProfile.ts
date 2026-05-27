@@ -45,12 +45,23 @@ export function useUpdateProfile() {
   const qc = useQueryClient()
   const { data: me } = useMe()
   return useMutation({
-    mutationFn: (data: { name?: string; campusId?: number }) =>
-      updateUserProfile(me!.id, data),
+    mutationFn: (data: { name?: string }) => updateUserProfile(me!.id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['user-profile', me?.id] })
       qc.invalidateQueries({ queryKey: ['me'] })
       toast.success('Perfil actualizado')
+    },
+    onError: toastApiError,
+  })
+}
+
+export function useSetupCampus(userId: string, onDone: () => void) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (campusIds: number[]) => updateUserPreferences(userId, { campusIds }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['user-preferences', userId] })
+      onDone()
     },
     onError: toastApiError,
   })
@@ -64,10 +75,10 @@ export function useDeleteAccount() {
   })
 }
 
-export function useUserProducts(userId: string | undefined, page = 1) {
+export function useUserProducts(userId: string | undefined, page = 1, status?: string) {
   return useQuery({
-    queryKey: ['user-products', userId, page],
-    queryFn: () => getUserProducts(userId!, page),
+    queryKey: ['user-products', userId, page, status],
+    queryFn: () => getUserProducts(userId!, page, status),
     enabled: !!userId,
     staleTime: 1000 * 60 * 2,
   })
@@ -105,8 +116,11 @@ export function useUpdatePreferences() {
   const qc = useQueryClient()
   const { data: me } = useMe()
   return useMutation({
-    mutationFn: (data: { emailNotifications?: boolean; showContactInfo?: boolean; campusIds?: number[] }) =>
-      updateUserPreferences(me!.id, data),
+    mutationFn: (data: {
+      emailNotifications?: boolean
+      showContactInfo?: boolean
+      campusIds?: number[]
+    }) => updateUserPreferences(me!.id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['user-preferences', me?.id] })
       toast.success('Preferencias guardadas')

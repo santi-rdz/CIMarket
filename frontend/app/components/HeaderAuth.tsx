@@ -4,15 +4,11 @@ import { FcGoogle } from 'react-icons/fc'
 import UserDropdown from './UserDropdown'
 import { useGoogleAuth } from '@/app/hooks/useGoogleAuth'
 import { useMe } from '@/app/hooks/useMe'
-import { useQueryClient } from '@tanstack/react-query'
 
 export default function HeaderAuth() {
-  const queryClient = useQueryClient()
   const { data: user } = useMe()
-
-  const { buttonContainerRef } = useGoogleAuth({
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['me'] }),
-  })
+  // onSuccess omitted — useLogin already invalidates ['me'] and handles redirect
+  const { buttonContainerRef } = useGoogleAuth({ onSuccess: () => {} })
 
   if (user) {
     const initials = user.name
