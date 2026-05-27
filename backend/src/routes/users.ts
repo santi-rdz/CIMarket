@@ -1,11 +1,12 @@
 import { Router, type IRouter } from 'express'
 import UserController from '#controllers/Users'
-import { requireAuth, optionalAuth } from '#middlewares/auth'
+import { requireAuth, requireAdmin, optionalAuth } from '#middlewares/auth'
 
 export const usersRouter: IRouter = Router()
 
-usersRouter.get('/', UserController.getAll)
-usersRouter.post('/', UserController.create)
+// Admin-only: list all users (includes emails) and direct user creation (bypasses OAuth)
+usersRouter.get('/', requireAdmin, UserController.getAll)
+usersRouter.post('/', requireAdmin, UserController.create)
 
 // All /:id routes use optionalAuth so the controller knows if caller is the owner
 usersRouter.get('/:id', optionalAuth, UserController.getById)
