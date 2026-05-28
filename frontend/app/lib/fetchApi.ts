@@ -16,12 +16,24 @@ export class ApiError extends Error {
   }
 }
 
-type FetchOptions = RequestInit & { token?: string }
+type FetchOptions = RequestInit & { token?: string; skipRefresh?: boolean }
 type ApiErrorBody = {
   error?: string | { message?: string; code?: string; details?: ApiField[] }
   message?: string
   code?: string
   details?: ApiField[]
+}
+
+let isRefreshing = false
+const pendingRequests: Array<(token: string) => void> = []
+
+function addPendingRequest(callback: (token: string) => void) {
+  pendingRequests.push(callback)
+}
+
+function resolvePendingRequests(token: string) {
+  pendingRequests.forEach((cb) => cb(token))
+  pendingRequests.length = 0
 }
 
 const MESSAGE_TRANSLATIONS: Record<string, string> = {
@@ -58,19 +70,69 @@ function parseApiError(rawBody: unknown, status: number) {
 }
 
 export async function fetchApi<T>(path: string, options: FetchOptions = {}): Promise<T> {
-  const { token, ...init } = options
+  const { token, skipRefresh, ...init } = options
+  const storedToken = token || (typeof window !== 'undefined' ? localStorage.getItem('token') : null)
 
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(storedToken && { Authorization: `Bearer ${storedToken}` }),
       ...init.headers,
     },
   })
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
+
+    // Si es 401 y no estamos en una solicitud de refresh, intentar refresh
+    if (res.status === 401 && !skipRefresh && typeof window !== 'undefined') {
+      if (!isRefreshing) {
+        isRefreshing = true
+
+        try {
+          // Hacer el refresh sin pasar token (viene en cookie httpOnly)
+          const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          })
+
+          if (refreshRes.ok) {
+            const refreshData = await refreshRes.json()
+            localStorage.setItem('token', refreshData.token)
+            window.dispatchEvent(new Event('token-change'))
+
+            isRefreshing = false
+            resolvePendingRequests(refreshData.token)
+
+            // Reintentar la solicitud original con el nuevo token
+            return fetchApi<T>(path, { ...options, token: refreshData.token, skipRefresh: true })
+          } else {
+            // Refresh falló, limpiar y redirigir al login
+            localStorage.removeItem('token')
+            window.dispatchEvent(new Event('token-change'))
+            isRefreshing = false
+            pendingRequests.length = 0
+
+            throw parseApiError(body, res.status)
+          }
+        } catch (error) {
+          isRefreshing = false
+          pendingRequests.length = 0
+          throw error
+        }
+      } else {
+        // Si ya hay un refresh en progreso, esperar a que complete
+        return new Promise((resolve, reject) => {
+          addPendingRequest((newToken) => {
+            fetchApi<T>(path, { ...options, token: newToken, skipRefresh: true })
+              .then(resolve)
+              .catch(reject)
+          })
+        })
+      }
+    }
+
     throw parseApiError(body, res.status)
   }
 

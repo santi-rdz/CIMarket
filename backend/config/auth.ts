@@ -4,7 +4,7 @@ import { requiredEnv, requiredSecret } from '#config/env'
 
 const JWT_SECRET = new TextEncoder().encode(requiredSecret('JWT_SECRET'))
 const JWT_ISSUER = 'cimarket'
-const JWT_EXPIRATION = process.env.JWT_EXPIRATION?.trim() || '15m'
+const JWT_EXPIRATION = process.env.JWT_EXPIRATION?.trim() || '20s'
 
 export const GOOGLE_CLIENT_ID = requiredEnv('GOOGLE_CLIENT_ID')
 
